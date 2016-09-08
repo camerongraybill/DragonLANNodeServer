@@ -1,12 +1,15 @@
 var http = require("http");
 var mongojs = require('mongojs');
-var db = mongojs('SmashElo');
 var fs = require('fs');
 var formidable = require('formidable');
 var util = require('util');
 var favicon = require('serve-favicon');
 var finalhandler = require('finalhandler');
-var _favicon = favicon('/home/ec2-user/Node/hostedItems/favicon.ico');
+var moment = require('moment');
+
+var _favicon = favicon(__dirname + '/hostedItems/favicon.ico');
+var logfile = fs.openSync(__dirname + '/logs/SmashElo.log', 'a', 0666);
+var db = mongojs('SmashElo');
 
 var server = http.createServer(function(req, res){
 	var done = finalhandler(req, res);
@@ -41,7 +44,7 @@ var server = http.createServer(function(req, res){
 
 function displayFile(announce, res, file){
 	var html = "<html><head><title>Drexel Smash Ladder</title></head><body><h1>" + announce + "</h1>"
-	fs.readFile('/home/ec2-user/Node/hostedItems/' + file, function(err, data){
+	fs.readFile(__dirname + '/hostedItems/' + file, function(err, data){
 		db.collection('players').find().sort({rating: -1}, function(err, docs){
 			html += data;
 			html += "<table><thead><th>Player</th><th>Rating</th></thead>"
@@ -49,7 +52,7 @@ function displayFile(announce, res, file){
 				html += "<tr><td>" + docs[i]['name'] + "</td><td>" + docs[i]['rating'] + "</td></tr>";
 			}
 			html += "</table>";
-			fs.readFile('/home/ec2-user/Node/hostedItems/footer.html', function(err, data){
+			fs.readFile(__dirname + '/hostedItems/footer.html', function(err, data){
 				html += data;
 				html += "</body></html>";
 				res.writeHead(200, {
@@ -68,13 +71,13 @@ function registerNewUser(req, res){
 		var newName = fields['name'];
 		db.collection('players').find({name: newName}, function(err, docs){
 			if(err){
-				console.log('Error searching for name ' + newName + ' while registering');
+				fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'Error searching for name ' + newName + ' while registering\n');
 			}
 			if(docs[0]){
 				displayFile("User " + newName + " already exists with rating " + docs[0]['rating'], res, 'register.html');
 			}
 			else{
-				console.log('User ' + newName + ' created with rating of 1200');
+				fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'User ' + newName + ' created with rating of 1200\n');
 				db.collection('players').insert({name: newName, rating: 1200});
 				displayFile("User " + newName + " created with rating of 1200", res, 'register.html');
 			}
@@ -87,12 +90,12 @@ function processGameReport(req, res){
 	form.parse(req, function(err, fields, files){
 		db.collection('players').find({name: fields['winner'].toLowerCase()}, function(winnerErr, winnerDocs){
 			if(winnerErr){
-				console.log('Error finding winner ' + fields['winner']);
+				fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'Error finding winner ' + fields['winner'] + '\n');
 			}
 			if(winnerDocs[0]){
 				db.collection('players').find({name: fields['loser'].toLowerCase()}, function(loserErr, loserDocs){
 					if(loserErr){
-						console.log('Error finding loser ' + fields['loser']);
+						fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'Error finding loser ' + fields['loser'] + '\n');
 					}
 					if(loserDocs[0]){
 						var winner = fields['winner'];
@@ -106,7 +109,7 @@ function processGameReport(req, res){
 						var kVal = (Math.log(fields['gamesWon']*2) / Math.log(1.1))*4;
 						var winnerRating = winnerRatingBefore + Math.ceil(kVal*(winnerScore - winnerExpected));
 						var loserRating = loserRatingBefore + Math.floor(kVal*(loserScore - loserExpected));
-						console.log(winner + " rating changed from " + winnerRatingBefore + " to " + winnerRating + "\n" + loser + " rating changed from " + loserRatingBefore + " to " + loserRating)
+						fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + winner + " rating changed from " + winnerRatingBefore + " to " + winnerRating + "\n" + loser + " rating changed from " + loserRatingBefore + " to " + loserRating + '\n')
 						db.collection('players').update({name: winner.toLowerCase()}, {$set: {rating: winnerRating}}, {multi:false}, function(){});
 						db.collection('players').update({name: loser.toLowerCase()}, {$set: {rating: loserRating}}, {multi:false}, function(){});
 						displayFile("Game Recorded", res, 'reportMatch.html');

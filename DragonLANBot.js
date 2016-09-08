@@ -6,7 +6,7 @@ var moment = require('moment');
 var fs = require('fs');
 
 
-var outfile = fs.openSync('/home/ec2-user/Node/logs/DragonLANBot.log', 'a', 0666);
+var logfile = fs.openSync(__dirname + '/logs/DragonLANBot.log', 'a', 0666);
 
 // import the discord.js module
 const Discord = require('discord.js');
@@ -19,7 +19,7 @@ const token = 'MjIyNTIwNDEzNTgwODIwNDgy.Cq-6PQ.gUV-gybGKOFH4Z_SYm5Drf9EOBo';
 
 //Listen for the bot to be ready
 bot.on('ready', () => {
-  fs.writeFileSync(outfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'I am ready!\n');
+  fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'I am ready!\n');
 });
 
 //Greet new users
@@ -27,7 +27,7 @@ bot.on('guildMemberAdd', (guild, member) => {
 	var botCommandsChannel = guild.channels.find('name', 'botcommands');
 	botCommandsChannel.sendMessage('Welcome <@' + member.id + '>! It is their first time on the server!');
 	botCommandsChannel.sendMessage('<@' + member.id + '> please take a look at the pinned messages in this channel for some help in getting set up, I reccomend you mute this channel as it gets a large amount of messages. If you have any questions feel free to message <@99875889797414912> for answers');
-	fs.writeFileSync(outfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'User ' + member.id + ' with name ' + member.user.username + ' joined the server for the first time\n');
+	fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'User ' + member.id + ' with name ' + member.user.username + ' joined the server for the first time\n');
 });
 
 // create an event listener for messages
@@ -41,17 +41,17 @@ bot.on('message', message => {
 			var usersRoles = user.roles.array();
 			for (var i = 3; i < input.length; i++){
 				if(input[i] == 'Admin' || input[i] == 'Aethex' || input[i] == 'Officers' || input[i] == 'Coordinator'){
-					fs.writeFileSync(outfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'User ' + user.id + ' with name ' + user.user.username + ' attempted to join the role ' + input[i] + ' but was denied\n');
+					fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'User ' + user.id + ' with name ' + user.user.username + ' attempted to join the role ' + input[i] + ' but was denied\n');
 					message.channel.sendMessage('Role ' + input[i] + ' is locked');
 				}
 				else if(server.roles.find('name', input[i])){
 					var roleToAdd = server.roles.find('name', input[i]);
 					usersRoles.push(roleToAdd);
 					message.channel.sendMessage('Added <@' + user.id + '> to the game ' + input[i]);
-					fs.writeFileSync(outfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'Added user ' + user.id + ' with name ' + user.user.username + ' to the role ' + input[i] + '\n');
+					fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'Added user ' + user.id + ' with name ' + user.user.username + ' to the role ' + input[i] + '\n');
 				}
 				else{
-					fs.writeFileSync(outfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'User ' + user.id + ' with name ' + user.user.username + ' attempted to join the role ' + input[i] + ' but it does not exist\n');
+					fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'User ' + user.id + ' with name ' + user.user.username + ' attempted to join the role ' + input[i] + ' but it does not exist\n');
 					message.channel.sendMessage('Role ' + input[i] + ' does not exist!');
 				}
 			}
@@ -62,7 +62,7 @@ bot.on('message', message => {
 		}
 		else if(input[1] == 'help'){
 			message.channel.sendMessage('Sending <@' + message.member.id + '> commands list');
-			fs.writeFileSync(outfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'user ' + message.member.id + ' with name ' + message.member.user.username + ' requested the help prompt\n');
+			fs.writeFileSync(logfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'user ' + message.member.id + ' with name ' + message.member.user.username + ' requested the help prompt\n');
 			message.member.sendMessage('This is the DragonLAN Discord administration Bot!\nHere is my list of commands:\n   -dl add game (list of games separated by spaces)     adds the user to the group for all games in the list (case sensetive\n   -dl list games                                                                       lists all currently supported games\n\nIf you have any questions about me, talk to <@99875889797414912> on the DragonLAN Server or in a direct message!');
 		}
 		else{
