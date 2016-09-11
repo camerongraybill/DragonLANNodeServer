@@ -1,0 +1,202 @@
+<!doctype html>
+<html class="no-js" lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DU Smash Ladder</title>
+    <link href="https://fonts.googleapis.com/css?family=Arvo:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="css/foundation-icons.css">
+    <link rel="stylesheet" href="css/foundation.css">
+    <link rel="stylesheet" href="css/app.css">
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+	var socket = io();
+	socket.on('refreshScoreboard', function(data){
+		var game = data['scoreboardJson']['game'];
+		var json = data['scoreboardJson']['data'];
+		document.getElementById(game + 'TableBody').innerHTML = "";
+		for(var i = 0; i < json.length; i++){
+			document.getElementById(game + 'TableBody').innerHTML += "<tr><td>" + (i + 1).toString() + "</td><td>" + json[i]['name'] + "</td><td><img src='" + game + "/" + json[i][game + 'Main'] + "'<\</td><td>" + json[i][game + 'Wins'] + "</td><td>" + json[i][game + 'Losses'] + "</td><td>" + json[i][game + 'Rating'] + "</td></tr>";
+		}
+	});
+	</script>
+  </head>
+  <body>
+
+  <header id="spec" class="row expanded small-collapse medium-uncollapse">
+        <nav>
+          <div class="title-bar" data-responsive-toggle="example-menu" data-hide-for="medium">
+            <section class="row small-collapse">
+              <div class="columns small-10">
+                <h1>D.U. Smash Ladder</h1>
+              </div>
+              <div class="columns small-2 text-right">
+                <button class="menu-icon" type="button" data-toggle></button>
+              <div class="title-bar-title"></div>
+              </div>
+            </section>
+            
+        </div>
+
+        <div class="top-bar" id="example-menu">
+            <div class="row hide-for-small-only expanded">
+              <h1 class="columns medium-12">Drexel University Smash Ladder</h1>
+            </div>
+            <div id="cenav" class="row expanded">
+              <ul class="menu vertical medium-horizontal columns medium-12" data-responsive-menu="drilldown medium-dropdown">
+                  <li><a href="/">Scoreboard</a></li>
+                  <li><a href="/register">Register</a></li>
+                  <li><a href="/report">Report Match</a></li>
+                </ul>
+                <div id="mag" class="row hide-for-medium">
+                  <ul class="columns small-12 no-bullet">
+                      <li class="columns small-4" data-magellan-arrival="smashFour"><a id="smag" href="#smashFour">Smash 4</a></li>
+                      <li class="columns small-4" data-magellan-arrival="melee"><a id="mmag" href="#melee">Melee</a></li>
+                      <li class="columns small-4" data-magellan-arrival="pm"><a id="pmag" href="#pm">Project M</a></li>
+                  </ul>
+                </div>
+            </div>
+        </div>
+      </nav>
+    </header>
+
+    <div id="hide" class="hide-for-medium"></div>
+
+    <div class="row">
+      <a name="smashFour"></a>
+      <h2 id="rank" class="columns small-12" data-magellan-destination="smashFour">Rankings - Smash 4</h2>
+    </div>
+
+
+  <section class="row">
+    <div id="score" class="columns small-12">
+       <table>
+			<thead>
+				<tr>
+				  <th>Rank</th>
+				  <th>Tag</th>
+				  <th class="show-for-medium">Main</th>
+				  <th>Wins</th>
+				  <th>Losses</th>
+				  <th>Rating</th> 
+				</tr>
+			</thead>
+			<tbody id='smashFourTableBody'>
+				<tr>
+				  <td>####</td> 
+				  <td>####</td> 
+				  <td class="show-for-medium"><img src="" alt=""></td>
+				  <td>####</td>  
+				  <td>####</td>  
+				  <td>####</td> 
+				</tr>
+			</tbody>
+        </table>
+    </div>
+  </section>
+
+  <div id="mag" class="row show-for-medium">
+    <ul class="columns small-12 no-bullet">
+        <li class="columns small-4" data-magellan-arrival="smashFour"><a id="smag" href="#smashFour">Smash 4</a></li>
+        <li class="columns small-4" data-magellan-arrival="melee"><a id="mmag" href="#melee">Melee</a></li>
+        <li class="columns small-4" data-magellan-arrival="pm"><a id="pmag" href="#pm">Project M</a></li>
+    </ul>
+  </div>
+
+  <div class="row">
+      <a name="melee"></a>
+      <h2 id="mrank" class="columns small-12" data-magellan-destination="melee">Rankings - Melee</h2>
+    </div>
+
+  <section class="row">
+    <div id="score" class="columns small-12">
+       <table>
+			<thead>
+				<tr>
+				  <th>Rank</th>
+				  <th>Tag</th>
+				  <th class="show-for-medium">Main</th>
+				  <th>Wins</th>
+				  <th>Losses</th>
+				  <th>Rating</th> 
+				</tr>
+			</thead>
+			<tbody id='meleeTableBody'>
+				<tr>
+				  <td>####</td> 
+				  <td>####</td> 
+				  <td class="show-for-medium"><img src="" alt=""></td>
+				  <td>####</td>  
+				  <td>####</td>  
+				  <td>####</td> 
+				</tr>
+			</tbody>
+        </table>
+    </div>
+  </section>
+
+  <div id="mag" class="row show-for-medium">
+    <ul class="columns small-12 no-bullet">
+        <li class="columns small-4" data-magellan-arrival="smashFour"><a id="smag" href="#smashFour">Smash 4</a></li>
+        <li class="columns small-4" data-magellan-arrival="melee"><a id="mmag" href="#melee">Melee</a></li>
+        <li class="columns small-4" data-magellan-arrival="pm"><a id="pmag" href="#pm">Project M</a></li>
+    </ul>
+  </div>
+
+  <div class="row">
+      <a name="pm"></a>
+      <h2 id="prank" class="columns small-12" data-magellan-destination="pm">Rankings - Project M</h2>
+    </div>
+
+  <section class="row">
+    <div id="score" class="columns small-12">
+       <table>
+			<thead>
+				<tr>
+				  <th>Rank</th>
+				  <th>Tag</th>
+				  <th class="show-for-medium">Main</th>
+				  <th>Wins</th>
+				  <th>Losses</th>
+				  <th>Rating</th> 
+				</tr>
+			</thead>
+			<tbody id='pmTableBody'>
+				<tr>
+				  <td>####</td> 
+				  <td>####</td> 
+				  <td class="show-for-medium"><img src="" alt=""></td>
+				  <td>####</td>  
+				  <td>####</td>  
+				  <td>####</td> 
+				</tr>
+			</tbody>
+        </table>
+    </div>
+  </section>
+
+  <div id="mag" class="row show-for-medium">
+    <ul class="columns small-12 no-bullet">
+        <li class="columns small-4" data-magellan-arrival="smashFour"><a id="smag" href="#smashFour">Smash 4</a></li>
+        <li class="columns small-4" data-magellan-arrival="melee"><a id="mmag" href="#melee">Melee</a></li>
+        <li class="columns small-4" data-magellan-arrival="pm"><a id="pmag" href="#pm">Project M</a></li>
+    </ul>
+  </div>
+
+  <div class="row expanded">
+      <div id="regsam" class="columns small-12">
+        <img src="img/S@M.png" alt="logo thing">
+      </div>
+    </div>
+
+    <div class="row expanded">
+      <a href="https://www.facebook.com/groups/dragoonsSMASH/"><i class="fi-social-facebook columns small-12"></i></a>
+    </div>
+ 
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/vendor/what-input.js"></script>
+    <script src="js/vendor/foundation.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "dragonlannode",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Cameron Graybill's utilities for DragonLAN",
   "main": "App.js",
   "dependencies": {

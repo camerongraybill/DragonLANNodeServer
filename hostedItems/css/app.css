@@ -1,0 +1,365 @@
+body{
+	font-family: 'Arvo', serif;
+}
+
+#spec{
+	position:fixed;
+	width:100%;
+}
+
+nav .title-bar{
+	background-color: #4064af;
+}
+
+nav h1{
+	color: #f8c811;
+	font-size: 25px;
+	font-weight: 700;
+}
+
+
+nav .menu-icon::after{
+ 	background-color: #f8c811;
+ 	box-shadow: 0 7px 0 #f8c811, 0 14px 0 #f8c811;
+ 	top:5px;
+}
+
+
+nav .menu-icon:hover::after{
+	background-color: #f8c811;
+ 	box-shadow: 0 7px 0 #f8c811, 0 14px 0 #f8c811;
+}
+
+/*Dropdown Menu*/
+nav .top-bar, nav .top-bar ul{
+	background-color: #f8c811;
+	padding: 0;
+}
+
+nav a{
+	background-color: #f8c811;
+	color: #4064af;
+	font-weight: 700;
+	text-align:center;
+}
+
+#head{
+	background-color:#4064af;
+	padding:10px;
+}
+
+h1{
+	font-family: 'Arvo', serif;
+	font-size:35px;
+	color:#f8c811;
+	font-weight:700;
+	text-align:center;
+}
+
+h2{
+	font-family: 'Arvo', serif;
+	font-size:30px;
+	font-weight:700;
+	margin-top:40px;
+	text-align:center;
+}
+
+#smash4{
+	color:#669dff;
+}
+
+#smashform label{
+	color:#669dff;
+}
+
+#smashform input:last-child{
+	color:#f8c811;
+	display:block;
+	margin:0 auto;
+	margin-top:20px;
+	background-color:#4064af;
+	font-weight:700;
+	border:none;
+	padding:10px;
+	border-radius:25px;
+}
+
+#smashform input:last-child:hover{
+	color:#4064af;
+	background-color:#f8c811;
+}
+
+#line{
+	margin-top:50px;
+	margin-bottom:50px;
+	border-bottom:dotted 2px #4064af;
+}
+
+#sam{
+	margin-top:40px;
+	margin-bottom:10px;
+}
+
+/*#melee{
+	color:#ff6470;
+	margin-top:0;
+}
+
+#meleeform label{
+	color:#ff6470;
+}
+
+#meleeform input:last-child{
+	color:#f8c811;
+	display:block;
+	margin:0 auto;
+	margin-top:20px;
+	background-color:#4064af;
+	font-weight:700;
+	border:none;
+	padding:10px;
+	border-radius:25px;
+}
+
+#meleeform input:last-child:hover{
+	color:#4064af;
+	background-color:#f8c811;
+}*/
+
+i{
+	color:#f8c811;
+	font-size:50px;
+	text-align:right;
+	background-color:#4064af;
+}
+
+#reg h2{
+	text-align:center;
+	color:#669dff;
+	margin-top:20px;
+}
+
+#regform label{
+	color:#669dff;
+	font-weight:700;
+	font-size:15px;
+}
+
+#regform p{
+	color:#669dff;
+}
+
+[type='checkbox']{
+	margin:0 .5rem 1rem;
+}
+
+#regform #slabel{
+	color:#4064af;
+}
+
+#regform #mlabel{
+	color:#ff6470;
+}
+
+#regform #plabel{
+	color:#704f94;
+}
+
+#regform input:last-child{
+	color:#f8c811;
+	display:block;
+	margin:0 auto;
+	margin-top:20px;
+	background-color:#4064af;
+	font-weight:700;
+	border:none;
+	padding:10px;
+	border-radius:25px;
+}
+
+#regform input:last-child:hover{
+	color:#4064af;
+	background-color:#f8c811;
+}
+
+#regsam img{
+	margin-top:40px;
+	margin-bottom:10px;
+}
+
+#rank{
+	color:#4064af;
+	margin-top:20px;
+}
+
+#mrank{
+	color:#ff6470;
+	margin-top:20px;
+}
+
+#prank{
+	color:#704f94;
+	margin-top:20px;
+}
+
+#score th{
+	color:#4064af;
+	background-color:#f8c811;
+	margin-top:20px;
+}
+
+#score td{
+	background-color:#fbdf73;
+
+}
+
+/*#mag{
+	position:fixed;
+}*/
+
+#mag li{
+	text-align:center;
+	font-weight:700;
+	margin-top:20px;
+}
+
+#smag{
+	color:#4064af;
+}
+
+#mmag{
+	color:#ff6470;
+}
+
+#pmag{
+	color:#704f94;
+}
+
+#hide{
+	height:59px;
+}
+
+@media screen and (min-width: 40em){
+
+	#spec{
+		position:static;
+	}
+
+	h1{
+		font-size:40px;
+	}
+
+	#smashform label{
+		font-size:18px;
+	}
+
+	#meleeform label{
+		font-size:19px;
+	}
+
+	nav .title-bar{
+		background-color: #4064af;
+	}
+
+	nav h1{
+		color: #f8c811;
+		font-size: 40px;
+		font-weight: 700;
+		text-align:center;
+	}
+
+	/*Dropdown Menu*/
+	nav .top-bar, nav .top-bar ul{
+		background-color: #4064af;
+		padding: 0;
+	}
+
+	#cenav{
+		text-align:center;
+	}
+
+	ul.menu {
+		display:inline-table;
+	}
+
+	ul.menu li{
+		display:inline;
+		font-size:20px;
+	}
+
+	nav{
+		padding-left:none;
+	}
+
+	nav a{
+		background-color:#4064af;
+		color:#f8c811;
+		font-weight:700;
+	}
+
+	#reg h2{
+		margin-top:40px;
+	}
+
+	#regform label{
+		font-size:20px;
+	}
+
+	#regform p{
+		font-size:20px;
+	}
+
+
+	#regsam img{
+		width:90%;
+		height:auto;
+	}
+
+}
+
+@media screen and (min-width: 64em){
+
+	#head{
+		padding:20px;
+	}
+
+	h1{
+		font-size:60px;
+	}
+
+	h2{
+		font-size:40px;
+	}
+
+	#regsam img{
+		height:auto;
+		width:30%;
+		display:block;
+		margin:auto;
+		margin-top:40px;
+		margin-bottom:10px;
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
