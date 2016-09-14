@@ -368,7 +368,9 @@ i{
 
 }
 
-
+#score td, #score th{
+    text-align:center;
+}
 
 
 

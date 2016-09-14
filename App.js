@@ -30,7 +30,7 @@ var Strategy = require('passport-local').Strategy;
 //WEBSITE STARTS HERE
 	//set some app settings
 	app.use(express.static(__dirname + '/hostedItems'));
-
+	app.set('view engine', 'jade');
 	//Utility stuff
 	function buildScoreboard(callback){
 		players.find({meleeRating: {$exists: true}}, {meleeRating:1, name:1, meleeWins:1, meleeLosses:1, meleeMain:1}).sort({meleeRating: -1}, function(err, meleePlayers){
@@ -76,13 +76,13 @@ var Strategy = require('passport-local').Strategy;
 	app.use(passport.session());
 	//Endpoints
 	app.get('/', function(req, res){
-		res.sendFile(__dirname + '/pages/index.html');
+		res.render(__dirname + '/pages/jade/index.jade');
 	});
 	app.get('/register', function(req, res){
-		res.sendFile(__dirname + '/pages/register.html');
+		res.render(__dirname + '/pages/jade/register.jade');
 	});
 	app.get('/report', function(req, res){
-		res.sendFile(__dirname + '/pages/report.html');
+		res.render(__dirname + '/pages/jade/report.jade');
 	});
 	app.post('/login', passport.authenticate('local', {failureRedirect: '/register'}), function(req, res){
 		res.redirect('/report');

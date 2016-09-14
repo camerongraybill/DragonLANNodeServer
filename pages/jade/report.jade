@@ -1,0 +1,117 @@
+doctype html
+html.no-js(lang='en', dir='ltr')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='x-ua-compatible', content='ie=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title DU Smash Ladder
+    link(href='https://fonts.googleapis.com/css?family=Arvo:400,700', rel='stylesheet')
+    link(rel='stylesheet', href='css/foundation-icons.css')
+    link(rel='stylesheet', href='css/foundation.css')
+    link(rel='stylesheet', href='css/app.css')
+    script(src='/socket.io/socket.io.js')
+    script.
+      var socket = io();
+      function submitGame(){
+      if(document.getElementById("playerOne").value != "" && document.getElementById("playerTwo").value != "" && document.getElementById("playerOneWins").value != "" && document.getElementById("playerTwoWins").value != "" && document.getElementsByName("game")[0].value != "pickOne"){
+      jsonToReturn = {};
+      jsonToReturn['playerOne'] = document.getElementById("playerOne").value;
+      jsonToReturn['playerOneId'] = document.getElementById("playerOneId").value.substring(0, document.getElementById("playerOneId").value.indexOf('@'));
+      jsonToReturn['playerTwoId'] = document.getElementById("playerTwoId").value.substring(0, document.getElementById("playerTwoId").value.indexOf('@'));
+      jsonToReturn['playerTwo'] = document.getElementById("playerTwo").value;
+      jsonToReturn['game'] = document.getElementsByName("game")[0].value
+      jsonToReturn['playerOneGamesWon'] = document.getElementById("playerOneWins").value;
+      jsonToReturn['playerTwoGamesWon'] = document.getElementById("playerTwoWins").value;
+      socket.emit('report', jsonToReturn);
+      }
+      else{
+      alert('Please fill in all the fields');
+      }
+      }
+      socket.on('report', function(data){
+      if(data['status']){
+      alert("Match reported successfully");
+      }
+      else if(data['reason'] == 'playerDoesNotExist'){
+      alert("Player " + data['playerName'] + " does not exist");
+      }
+      else if(data['reason'] == 'playerNotRegistered'){
+      alert("Player " + data['playerName'] + " is not registered for " + document.getElementsByName("game")[0].value);
+      }
+      else if(data['reason'] == 'wrongPassword'){
+      alert("Player " + data['playerName'] + " entered the wrong student ID");
+      }
+      else if(data['reason'] == 'error'){
+      alert("There was an error reporting the match");
+      }
+      else{
+      alert("Unknown Error");
+      }
+      });
+  body
+    header.row.expanded.small-collapse.medium-uncollapse
+      nav
+        .title-bar(data-responsive-toggle='example-menu', data-hide-for='medium')
+          section.row.small-collapse
+            .columns.small-10
+              h1 D.U. Smash Ladder
+            .columns.small-2.text-right
+              button.menu-icon(type='button', data-toggle='')
+              .title-bar-title
+        #example-menu.top-bar
+          .row.hide-for-small-only.expanded
+            h1.columns.medium-12 Drexel University Smash Ladder
+          #cenav.row.expanded
+            ul.menu.vertical.medium-horizontal.columns.medium-12(data-responsive-menu='drilldown medium-dropdown')
+              li
+                a(href='/') Scoreboard
+              li
+                a(href='/register') Register
+              li
+                a(href='/report') Report Match
+    section.row.expanded
+      #logdiv
+        a(href='#')
+          #log.columns.small-12.text-center Login
+      h2#smash4.columns.small-12 Report Your Match
+      form#smashform.columns.small-12.medium-10.medium-offset-1(action='', method='', enctype='')
+        fieldset
+          label(for='playerOne') Player One tag:
+          input#playerOne(type='text', name='playerOne', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's tag")
+          br
+          label(for='playerTwo') Player Two tag:
+          input#playerTwo(type='text', name='playerTwo', onkeypress='return event.keyCode!=13', placeholder="Enter Player Two's tag")
+          br
+          label(for='playerOneId') Player One Drexel Email:
+          input#playerOneId(type='text', name='playerOneId', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's Drexel Email")
+          br
+          label(for='playerTwoId') Player Two Drexel Email:
+          input#playerTwoId(type='text', name='playerTwoId', onkeypress='return event.keyCode!=13', placeholder="Enter Player Two's Drexel Email")
+          br
+          .row
+            .columns.medium-6
+              label(for='playerOneWins') How many games did Player One win?
+              input#playerOneWins(type='text', name='playerOneWins', onkeypress='return event.keyCode!=13', placeholder='Number of games Player One won')
+              br
+            .columns.medium-6
+              label(for='playerTwoWins') How many games did Player Two win?
+              input#playerTwoWins(type='text', name='playerTwoWins', onkeypress='return event.keyCode!=13', placeholder='Number of games Player Two won')
+              br
+            label(for='game') Which game was this in?
+            select(name='game')
+              option(value='pickOne') Choose One
+              option(value='smashFour') Smash 4
+              option(value='melee') Melee
+              option(value='pm') Project M
+            br
+            input(type='button', value='Submit Game', onclick='submitGame()')
+      .row.expanded
+        #regsam.columns.small-12
+          img(src='img/S@M.png', alt='logo thing')
+      .row.expanded
+        a(href='https://www.facebook.com/groups/dragoonsSMASH/')
+          i.fi-social-facebook.columns.small-12
+    script(src='js/vendor/jquery.js')
+    script(src='js/vendor/what-input.js')
+    script(src='js/vendor/foundation.js')
+    script(src='js/app.js')

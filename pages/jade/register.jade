@@ -1,0 +1,249 @@
+doctype html
+html.no-js(lang='en', dir='ltr')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='x-ua-compatible', content='ie=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title DU Smash Ladder
+    link(href='https://fonts.googleapis.com/css?family=Arvo:400,700', rel='stylesheet')
+    link(rel='stylesheet', href='css/foundation-icons.css')
+    link(rel='stylesheet', href='css/foundation.css')
+    link(rel='stylesheet', href='css/app.css')
+    script(src='/socket.io/socket.io.js')
+    script.
+      var socket = io();
+      function submitUser(){
+      var checkedBoxes = document.getElementsByName('game');
+      for(var i = 0; i < checkedBoxes.length; i++){
+      if((checkedBoxes[i].checked && document.getElementById(checkedBoxes[i].value + 'Main').value == "pickOne") || document.getElementById('name').value == "" || document.getElementById("stuID").value == ""){
+      alert("Please fill in all of the information");
+      return;
+      }
+      if(document.getElementById("stuID").value != document.getElementById("stuIDC").value){
+      alert("Emails do not match");
+      return;
+      }
+      }
+      socket.emit('register', {melee:checkedBoxes[1].checked,smashFour:checkedBoxes[0].checked,pm:checkedBoxes[2].checked,name:document.getElementById('name').value,meleeMain:document.getElementById('meleeMain').value,smashFourMain:document.getElementById('smashFourMain').value,pmMain:document.getElementById('pmMain').value,stuID:document.getElementById("stuID").value.substring(0, document.getElementById("stuID").value.indexOf('@'))});
+      for(var i = 0; i < checkedBoxes.length; i++){
+      checkedBoxes[i].checked = 0;
+      }
+      };
+      socket.on('register', function(data){
+      if(data['status']){
+      alert("User registered");
+      window.location.replace("http://dusmashladder.com");
+      }
+      else if(data['reason'] == 'exists'){
+      alert("User " + document.getElementById("name").value + " already exists");
+      }
+      else{
+      alert("Error registering user");
+      }
+      });
+      function boxchecked(item){
+      if(item.checked){
+      document.getElementById(item.value + 'div').style.display = 'inline';
+      }
+      else{
+      document.getElementById(item.value + 'div').style.display = 'none';
+      }
+      }
+  body
+    header.row.expanded.small-collapse.medium-uncollapse
+      nav
+        .title-bar(data-responsive-toggle='example-menu', data-hide-for='medium')
+          section.row.small-collapse
+            .columns.small-10
+              h1 D.U. Smash Ladder
+            .columns.small-2.text-right
+              button.menu-icon(type='button', data-toggle='')
+              .title-bar-title
+        #example-menu.top-bar
+          .row.hide-for-small-only.expanded
+            h1.columns.medium-12 Drexel University Smash Ladder
+          #cenav.row.expanded
+            ul.menu.vertical.medium-horizontal.columns.medium-12(data-responsive-menu='drilldown medium-dropdown')
+              li
+                a(href='/') Scoreboard
+              li
+                a(href='/register') Register
+              li
+                a(href='/report') Report Match
+    #logdiv
+      a(href='#')
+        #log.columns.small-12.text-center Login
+    #reg.row.expanded
+      h2.columns.small-12 Register Your Tag
+    form#regform.columns.small-12.medium-8.medium-offset-2(action='', method='', enctype='')
+      fieldset
+        label(for='name') GamerTag:
+        input#name(type='text', name='name', onkeypress='return event.keyCode!=13', placeholder="Enter the new user's name")
+        br
+        label(for='stuID') Drexel Email:
+        input#stuID(type='text', name='stuID', onkeypress='return event.keyCode!=13', placeholder="Enter your Drexel Email for example: 'abc12@drexel.edu'. This is only used for authentication.")
+        br
+        label(for='stuIDC') Confrim Drexel Email:
+        input#stuIDC(type='text', name='stuIDC', onkeypress='return event.keyCode!=13', placeholder='Enter your Drexel Email again')
+        br
+        p What games would you like to be ranked for?
+        input(type='checkbox', name='game', value='smashFour', onchange='boxchecked(this)')
+        label#slabel Smash 4
+        br
+        #smashFourdiv(style='display:none;')
+          label(for='smashFourMain') Who is your Smash 4 main?
+          select#smashFourMain
+            option(value='pickOne') Choose One
+            option(value='bayonetta') Bayonetta
+            option(value='bowser') Bowser
+            option(value='bowserJr') Bowser Jr.
+            option(value='captainFalcon') Captain Falcon
+            option(value='charizard') Charizard
+            option(value='cloud') Cloud
+            option(value='corrin') Corrin
+            option(value='darkPit') Dark Pit
+            option(value='diddyKong') Diddy Kong
+            option(value='donkeyKong') Donkey Kong
+            option(value='drMario') Dr. Mario
+            option(value='duckHunt') Duck Hunt
+            option(value='falco') Falco
+            option(value='fox') Fox
+            option(value='ganondorf') Ganondorf
+            option(value='greninja') Greninja
+            option(value='ike') Ike
+            option(value='jigglypuff') Jigglypuff
+            option(value='kingDedede') King Dedede
+            option(value='kirby') Kirby
+            option(value='link') Link
+            option(value='littleMac') Little Mac
+            option(value='lucario') Lucario
+            option(value='lucas') Lucas
+            option(value='lucina') Lucina
+            option(value='luigi') Luigi
+            option(value='mario') Mario
+            option(value='marth') Marth
+            option(value='megaMan') Mega Man
+            option(value='metaKnight') Meta Knight
+            option(value='mewtwo') Mewtwo
+            option(value='miiBrawler') Mii Brawler
+            option(value='miiGunner') Mii Gunner
+            option(value='miiSwordfighter') Mii Swordfighter
+            option(value='mrGameAndWatch') Mr. Game & Watch
+            option(value='ness') Ness
+            option(value='olimar') Olimar
+            option(value='pacMan') Pac-Man
+            option(value='palutena') Palutena
+            option(value='peach') Peach
+            option(value='pikachu') Pikachu
+            option(value='pit') Pit
+            option(value='rob') R.O.B.
+            option(value='robin') Robin
+            option(value='rosalinaAndLuma') Rosalina & Luma
+            option(value='roy') Roy
+            option(value='ryu') Ryu
+            option(value='samus') Samus
+            option(value='sheik') Sheik
+            option(value='shulk') Shulk
+            option(value='sonic') Sonic
+            option(value='toonLink') Toon Link
+            option(value='villager') Villager
+            option(value='wario') Wario
+            option(value='wiiFitTrainer') Wii Fit Trainer
+            option(value='yoshi') Yoshi
+            option(value='zelda') Zelda
+            option(value='zeroSuitSamus') Zero Suit Samus 
+          br
+        input(type='checkbox', name='game', value='melee', onchange='boxchecked(this)')
+        label#mlabel Melee
+        br
+        #meleediv(style='display:none;')
+          label(for='meleeMain') Who is your Melee main?
+          select#meleeMain
+            option(value='pickOne') Choose One
+            option(value='bowser') Bowser
+            option(value='captainFalcon') Captain Falcon
+            option(value='donkeyKong') Donkey Kong
+            option(value='drMario') Dr. Mario
+            option(value='falco') Falco
+            option(value='fox') Fox
+            option(value='ganondorf') Ganondorf
+            option(value='iceClimbers') Ice Climbers
+            option(value='jigglypuff') Jigglypuff
+            option(value='kirby') Kirby
+            option(value='link') Link
+            option(value='luigi') Luigi
+            option(value='mario') Mario
+            option(value='marth') Marth
+            option(value='mewtwo') Mewtwo
+            option(value='mrGameAndWatch') Mr. Game & Watch
+            option(value='ness') Ness
+            option(value='peach') Peach
+            option(value='pichu') Pichu
+            option(value='pikachu') Pikachu
+            option(value='roy') Roy
+            option(value='samus') Samus
+            option(value='sheik') Sheik
+            option(value='yoshi') Yoshi
+            option(value='youngLink') Young Link
+            option(value='zelda') Zelda
+          br
+        input(type='checkbox', name='game', value='pm', onchange='boxchecked(this)')
+        label#plabel Project M
+        br
+        #pmdiv(style='display:none;')
+          label(for='pmMain') Who is your Project M main?
+          select#pmMain
+            option(value='pickOne') Choose One
+            option(value='bowser') Bowser
+            option(value='captainFalcon') Captain Falcon
+            option(value='charizard') Charizard
+            option(value='diddyKong') Diddy Kong
+            option(value='donkeyKong') Donkey Kong
+            option(value='falco') Falco
+            option(value='fox') Fox
+            option(value='ganondorf') Ganondorf
+            option(value='iceClimbers') Ice Climbers
+            option(value='ike') Ike
+            option(value='ivysaur') Ivysaur
+            option(value='jigglypuff') Jigglypuff
+            option(value='kingDedede') King Dedede
+            option(value='kirby') Kirby
+            option(value='link') Link
+            option(value='lucario') Lucario
+            option(value='lucas') Lucas
+            option(value='luigi') Luigi
+            option(value='mario') Mario
+            option(value='marth') Marth
+            option(value='metaKnight') Meta Knight
+            option(value='mewtwo') Mewtwo
+            option(value='mrGameAndWatch') Mr. Game & Watch
+            option(value='ness') Ness
+            option(value='olimar') Olimar
+            option(value='peach') Peach
+            option(value='pikachu') Pikachu
+            option(value='pit') Pit
+            option(value='rob') R.O.B
+            option(value='roy') Roy
+            option(value='samus') Samus
+            option(value='sheik') Sheik
+            option(value='snake') Snake
+            option(value='sonic') Sonic
+            option(value='squirtle') Squirtle
+            option(value='toonLink') Toon Link
+            option(value='wario') Wario
+            option(value='wolf') Wolf
+            option(value='yoshi') Yoshi
+            option(value='zelda') Zelda
+            option(value='zeroSuitSamus') Zero Suit Samus
+          br
+        input(type='button', value='Create user', onclick='submitUser()')
+    .row.expanded
+      #regsam.columns.small-12
+        img(src='img/S@M.png', alt='logo thing')
+    .row.expanded
+      a(href='https://www.facebook.com/groups/dragoonsSMASH/')
+        i.fi-social-facebook.columns.small-12
+    script(src='js/vendor/jquery.js')
+    script(src='js/vendor/what-input.js')
+    script(src='js/vendor/foundation.js')
+    script(src='js/app.js')
