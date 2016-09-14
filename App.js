@@ -9,6 +9,9 @@ var favicon = require('serve-favicon');
 var finalhandler = require('finalhandler');
 var moment = require('moment');
 var socketIO = require('socket.io');
+var passport = require('passport');
+var Strategy = require('passport-local').Strategy;
+
 
 //Initialize globals
 	//For Discord Bot
@@ -27,7 +30,7 @@ var socketIO = require('socket.io');
 //WEBSITE STARTS HERE
 	//set some app settings
 	app.use(express.static(__dirname + '/hostedItems'));
-	
+
 	//Utility stuff
 	function buildScoreboard(callback){
 		players.find({meleeRating: {$exists: true}}, {meleeRating:1, name:1, meleeWins:1, meleeLosses:1, meleeMain:1}).sort({meleeRating: -1}, function(err, meleePlayers){
@@ -41,6 +44,36 @@ var socketIO = require('socket.io');
 		});
 	}
 	
+	passport.use(new Strategy(function(username, password, callback){
+		players.find({name: username}, function(err, docs){
+			//console.log(docs);
+			var user = docs[0];
+			if(err){return callback(err);}
+			if(!user){return callback(null, false);}
+			if(user['password'] != password){return callback(null, false);}
+			return callback(null, user);
+		});
+	}));
+	
+	passport.serializeUser(function(user, callback){
+		//console.log(user);
+		callback(null, user['studentID']);
+	});
+	
+	passport.deserializeUser(function(id, callback){
+		players.find({studentID:id}, function(err, docs){
+			console.log(id);
+			console.log(docs);
+			if(err) {return callback(err)};
+			callback(null, docs[0]);
+		});
+	});
+	app.use(require('morgan')('combined'));
+	app.use(require('cookie-parser')());
+	app.use(require('body-parser').urlencoded({ extended: true }));
+	app.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
+	app.use(passport.initialize());
+	app.use(passport.session());
 	//Endpoints
 	app.get('/', function(req, res){
 		res.sendFile(__dirname + '/pages/index.html');
@@ -51,6 +84,13 @@ var socketIO = require('socket.io');
 	app.get('/report', function(req, res){
 		res.sendFile(__dirname + '/pages/report.html');
 	});
+	app.post('/login', passport.authenticate('local', {failureRedirect: '/register'}), function(req, res){
+		res.redirect('/report');
+	});
+	app.post('/logout', function(req, res){
+		req.logout();
+		res.redirect('back');
+	});
 	io.sockets.on('connection', function(socket){
 		buildScoreboard(function(data){
 			socket.emit('refreshScoreboard', {reason: 'firstConnect', scoreboardJson: data});
@@ -60,6 +100,7 @@ var socketIO = require('socket.io');
 			var smashFour = data['smashFour'];
 			var pm = data['pm'];
 			var newName = data['name'];
+			var stuID = data['stuID'];
 			players.find({name: newName}, function(err, docs){
 				if(err){
 					socket.emit('register', {status: 0, reason: 'error'});
@@ -70,7 +111,7 @@ var socketIO = require('socket.io');
 				}
 				else{
 					fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'User ' + newName + ' created with rating of 1200\n');
-					players.insert({name: newName}, function(){
+					players.insert({name: newName, studentID: stuID}, function(){
 					if(melee){players.update({name:newName}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, meleeMain: data['meleeMain']}});}
 					if(smashFour){players.update({name:newName}, {$set: {smashFourRating: 1200, smashFourWins: 0, smashFourLosses: 0, smashFourMatchups: {}, smashFourMain: data['smashFourMain']}});}
 					if(pm){players.update({name:newName}, {$set: {pmRating: 1200, pmWins: 0, pmLosses: 0, pmMatchups: {}, pmMain: data['pmMain']}});}
@@ -85,6 +126,8 @@ var socketIO = require('socket.io');
 		socket.on('report', function(data){
 			var playerOne = data['playerOne'];
 			var playerTwo = data['playerTwo'];
+			var playerOneStuID = data['playerOneId'];
+			var playerTwoStuID = data['playerTwoId'];
 			var gamePlayed = data['game'];
 			players.find({name: playerOne}, function(err, playerOneEntry){
 				if(err){
@@ -96,6 +139,9 @@ var socketIO = require('socket.io');
 				}
 				else if(!playerOneEntry[0][gamePlayed + 'Rating']){
 					socket.emit('report', {status: 0, reason: 'playerNotRegistered', playerName: playerOne});
+				}
+				else if(playerOneEntry[0]['studentID'] != playerOneStuID){
+					socket.emit('report', {status: 0, reason: 'wrongPassword', playerName: playerOne});
 				}
 				else{
 					err = 0;
@@ -110,9 +156,12 @@ var socketIO = require('socket.io');
 						else if(!playerTwoEntry[0][gamePlayed + 'Rating']){
 							socket.emit('report', {status: 0, reason: 'playerNotRegistered', playerName: playerTwo});
 						}
+						else if(playerTwoEntry[0]['studentID'] != playerTwoStuID){
+							socket.emit('report', {status: 0, reason: 'wrongPassword', playerName: playerTwo});
+						}
 						else{
-							var playerOneGamesWon = data['playerOneGamesWon'];
-							var playerTwoGamesWon = data['playerTwoGamesWon'];
+							var playerOneGamesWon = parseInt(data['playerOneGamesWon']);
+							var playerTwoGamesWon = parseInt(data['playerTwoGamesWon']);
 							var numGamesPlayed = playerOneGamesWon + playerTwoGamesWon;
 							var playerOneRatingBefore = playerOneEntry[0][gamePlayed + 'Rating'];
 							var playerOneID = playerOneEntry[0]['_id'].toString().replace('ObjectID("', '').slice(0, -1);
@@ -223,7 +272,7 @@ var socketIO = require('socket.io');
 				//if the command is 'list games' then return a list of the games
 				message.channel.sendMessage('Supported games are: Smash, LoL (League of Legends), Overwatch, DotA2')
 			}
-			else if(input[1] == 'help'){
+			else if(input[1] == 'help' || input.length == 1){
 				message.channel.sendMessage('Sending <@' + message.member.id + '> commands list');
 				fs.writeFileSync(discordLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'user ' + message.member.id + ' with name ' + message.member.user.username + ' requested the help prompt\n');
 				message.member.sendMessage(helpMessage);

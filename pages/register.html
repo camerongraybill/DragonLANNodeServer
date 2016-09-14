@@ -15,12 +15,16 @@
 		function submitUser(){
 			var checkedBoxes = document.getElementsByName('game');
 			for(var i = 0; i < checkedBoxes.length; i++){
-				if((checkedBoxes[i].checked && document.getElementById(checkedBoxes[i].value + 'Main').value == "pickOne") || document.getElementById('name').value == ""){
+				if((checkedBoxes[i].checked && document.getElementById(checkedBoxes[i].value + 'Main').value == "pickOne") || document.getElementById('name').value == "" || document.getElementById("stuID").value == ""){
 					alert("Please fill in all of the information");
 					return;
 				}
+				if(document.getElementById("stuID").value != document.getElementById("stuIDC").value){
+					alert("Emails do not match");
+					return;
 				}
-			socket.emit('register', {melee:checkedBoxes[1].checked,smashFour:checkedBoxes[0].checked,pm:checkedBoxes[2].checked,name:document.getElementById('name').value,meleeMain:document.getElementById('meleeMain').value,smashFourMain:document.getElementById('smashFourMain').value,pmMain:document.getElementById('pmMain').value});
+				}
+			socket.emit('register', {melee:checkedBoxes[1].checked,smashFour:checkedBoxes[0].checked,pm:checkedBoxes[2].checked,name:document.getElementById('name').value,meleeMain:document.getElementById('meleeMain').value,smashFourMain:document.getElementById('smashFourMain').value,pmMain:document.getElementById('pmMain').value,stuID:document.getElementById("stuID").value.substring(0, document.getElementById("stuID").value.indexOf('@'))});
 			for(var i = 0; i < checkedBoxes.length; i++){
 				checkedBoxes[i].checked = 0;
 			}
@@ -28,6 +32,7 @@
 		socket.on('register', function(data){
 			if(data['status']){
 				alert("User registered");
+				window.location.replace("http://dusmashladder.com");
 			}
 			else if(data['reason'] == 'exists'){
 				alert("User " + document.getElementById("name").value + " already exists");
@@ -79,7 +84,9 @@
         </div>
         </nav>
       </header>
-
+      <div id="logdiv">
+        <a href="#"><div id="log" class="columns small-12 text-center">Login</div></a>
+      </div>
       <div id="reg" class="row expanded">
         <h2 class="columns small-12">Register Your Tag</h2>
       </div>
@@ -89,14 +96,16 @@
           <label for="name">GamerTag:</label>
           <input type="text" id="name" name="name" onkeypress="return event.keyCode!=13" placeholder="Enter the new user's name" />
           <br />
+          <label for="stuID">Drexel Email:</label>
+          <input type="text" id="stuID" name="stuID" onkeypress="return event.keyCode!=13" placeholder="Enter your Drexel Email for example: 'abc12@drexel.edu'. This is only used for authentication." />
+          <br />
+          <label for="stuIDC">Confrim Drexel Email:</label>
+          <input type="text" id="stuIDC" name="stuIDC" onkeypress="return event.keyCode!=13" placeholder="Enter your Drexel Email again" />
+          <br />
           <p>What games would you like to be ranked for?</p>
           <input type="checkbox" name="game" value="smashFour" onchange="boxchecked(this)"><label id="slabel">Smash 4</label>
           <br />
-          <input type="checkbox" name="game" value="melee" onchange="boxchecked(this)"><label id="mlabel">Melee</label>
-          <br />
-          <input type="checkbox" name="game" value="pm" onchange="boxchecked(this)"><label id="plabel">Project M</label>
-          <br />
-		  <div id='smashFourdiv' style="display:none;">
+		  		  <div id='smashFourdiv' style="display:none;">
 		  <label for="smashFourMain">Who is your Smash 4 main?</label>
 			<select id="smashFourMain">
 				<option value='pickOne' >Choose One</option>
@@ -110,11 +119,11 @@
 				<option value='darkPit' >Dark Pit</option>
 				<option value='diddyKong' >Diddy Kong</option>
 				<option value='donkeyKong' >Donkey Kong</option>
-				<option value='dr.Mario' >Dr. Mario</option>
+				<option value='drMario' >Dr. Mario</option>
 				<option value='duckHunt' >Duck Hunt</option>
 				<option value='falco' >Falco</option>
 				<option value='fox' >Fox</option>
-				<option value='gannondorf' >Ganondorf</option>
+				<option value='ganondorf' >Ganondorf</option>
 				<option value='greninja' >Greninja</option>
 				<option value='ike' >Ike</option>
 				<option value='jigglypuff' >Jigglypuff</option>
@@ -134,7 +143,7 @@
 				<option value='miiBrawler' >Mii Brawler</option>
 				<option value='miiGunner' >Mii Gunner</option>
 				<option value='miiSwordfighter' >Mii Swordfighter</option>
-				<option value='mr.Game&Watch' >Mr. Game & Watch</option>
+				<option value='mrGameAndWatch' >Mr. Game & Watch</option>
 				<option value='ness' >Ness</option>
 				<option value='olimar' >Olimar</option>
 				<option value='pacMan' >Pac-Man</option>
@@ -144,7 +153,7 @@
 				<option value='pit' >Pit</option>
 				<option value='rob' >R.O.B.</option>
 				<option value='robin' >Robin</option>
-				<option value='rosalina&Luma' >Rosalina & Luma</option>
+				<option value='rosalinaAndLuma' >Rosalina & Luma</option>
 				<option value='roy' >Roy</option>
 				<option value='ryu' >Ryu</option>
 				<option value='samus' >Samus</option>
@@ -161,17 +170,20 @@
 			</select>
 			<br />
 			</div>
-		  <div id='meleediv' style="display:none;">
+          <input type="checkbox" name="game" value="melee" onchange="boxchecked(this)"><label id="mlabel">Melee</label>
+          <br />
+		  		  <div id='meleediv' style="display:none;">
 		  <label for="meleeMain">Who is your Melee main?</label>
 			<select id="meleeMain">
 				<option value='pickOne' >Choose One</option>
 				<option value='bowser' >Bowser</option>
 				<option value='captainFalcon' >Captain Falcon</option>
 				<option value='donkeyKong' >Donkey Kong</option>
-				<option value='dr.Mario' >Dr. Mario</option>
+				<option value='drMario' >Dr. Mario</option>
 				<option value='falco' >Falco</option>
 				<option value='fox' >Fox</option>
-				<option value='gannondorf' >Ganondorf</option>
+				<option value='ganondorf' >Ganondorf</option>
+				<option value='iceClimbers' >Ice Climbers</option>
 				<option value='jigglypuff' >Jigglypuff</option>
 				<option value='kirby' >Kirby</option>
 				<option value='link' >Link</option>
@@ -179,7 +191,7 @@
 				<option value='mario' >Mario</option>
 				<option value='marth' >Marth</option>
 				<option value='mewtwo' >Mewtwo</option>
-				<option value='mr.Game&Watch' >Mr. Game & Watch</option>
+				<option value='mrGameAndWatch' >Mr. Game & Watch</option>
 				<option value='ness' >Ness</option>
 				<option value='peach' >Peach</option>
 				<option value='pichu' >Pichu</option>
@@ -193,6 +205,9 @@
 			</select>
 			<br />
 			</div>
+          <input type="checkbox" name="game" value="pm" onchange="boxchecked(this)"><label id="plabel">Project M</label>
+          <br />
+
 		  <div id='pmdiv' style="display:none;">
 		  <label for="pmMain">Who is your Project M main?</label>
 			<select id="pmMain">
@@ -204,7 +219,8 @@
 				<option value='donkeyKong' >Donkey Kong</option>
 				<option value='falco' >Falco</option>
 				<option value='fox' >Fox</option>
-				<option value='gannondorf' >Ganondorf</option>
+				<option value='ganondorf' >Ganondorf</option>
+				<option value='iceClimbers' >Ice Climbers</option>
 				<option value='ike' >Ike</option>
 				<option value='ivysaur' >Ivysaur</option>
 				<option value='jigglypuff' >Jigglypuff</option>
@@ -218,7 +234,7 @@
 				<option value='marth' >Marth</option>
 				<option value='metaKnight' >Meta Knight</option>
 				<option value='mewtwo' >Mewtwo</option>
-				<option value='mr.Game&Watch' >Mr. Game & Watch</option>
+				<option value='mrGameAndWatch' >Mr. Game & Watch</option>
 				<option value='ness' >Ness</option>
 				<option value='olimar' >Olimar</option>
 				<option value='peach' >Peach</option>
@@ -231,10 +247,10 @@
 				<option value='snake' >Snake</option>
 				<option value='sonic' >Sonic</option>
 				<option value='squirtle' >Squirtle</option>
-				<option value='yoshi' >Yoshi</option>
 				<option value='toonLink' >Toon Link</option>
 				<option value='wario' >Wario</option>
 				<option value='wolf' >Wolf</option>
+				<option value='yoshi' >Yoshi</option>
 				<option value='zelda' >Zelda</option>
 				<option value='zeroSuitSamus' >Zero Suit Samus</option>
 			</select>

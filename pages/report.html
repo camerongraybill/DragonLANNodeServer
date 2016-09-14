@@ -16,6 +16,8 @@
 			if(document.getElementById("playerOne").value != "" && document.getElementById("playerTwo").value != "" && document.getElementById("playerOneWins").value != "" && document.getElementById("playerTwoWins").value != "" && document.getElementsByName("game")[0].value != "pickOne"){
 				jsonToReturn = {};
 				jsonToReturn['playerOne'] = document.getElementById("playerOne").value;
+				jsonToReturn['playerOneId'] = document.getElementById("playerOneId").value.substring(0, document.getElementById("playerOneId").value.indexOf('@'));
+				jsonToReturn['playerTwoId'] = document.getElementById("playerTwoId").value.substring(0, document.getElementById("playerTwoId").value.indexOf('@'));
 				jsonToReturn['playerTwo'] = document.getElementById("playerTwo").value;
 				jsonToReturn['game'] = document.getElementsByName("game")[0].value
 				jsonToReturn['playerOneGamesWon'] = document.getElementById("playerOneWins").value;
@@ -30,14 +32,20 @@
 		if(data['status']){
 			alert("Match reported successfully");
 		}
-		else if(data['reason'] == 'error'){
-			alert("There was an error reporting the match");
-		}
 		else if(data['reason'] == 'playerDoesNotExist'){
 			alert("Player " + data['playerName'] + " does not exist");
 		}
 		else if(data['reason'] == 'playerNotRegistered'){
 			alert("Player " + data['playerName'] + " is not registered for " + document.getElementsByName("game")[0].value);
+		}
+		else if(data['reason'] == 'wrongPassword'){
+			alert("Player " + data['playerName'] + " entered the wrong student ID");
+		}
+		else if(data['reason'] == 'error'){
+			alert("There was an error reporting the match");
+		}
+		else{
+			alert("Unknown Error");
 		}
 	});
 	</script>
@@ -77,7 +85,9 @@
       </header>
     
     <section class="row expanded">
-
+	<div id="logdiv">
+      <a href="#"><div id="log" class="columns small-12 text-center">Login</div></a>
+    </div>
     <h2 id="smash4" class="columns small-12">Report Your Match</h2>
 
     <form id="smashform" class="columns small-12 medium-10 medium-offset-1" action="" method="" enctype="">
@@ -87,6 +97,12 @@
             <br />
             <label for="playerTwo">Player Two tag:</label>
             <input type="text" id="playerTwo" name="playerTwo" onkeypress="return event.keyCode!=13" placeholder="Enter Player Two's tag" />
+            <br />
+            <label for="playerOneId">Player One Drexel Email:</label>
+            <input type="text" id="playerOneId" name="playerOneId" onkeypress="return event.keyCode!=13" placeholder="Enter Player One's Drexel Email" />
+            <br />
+            <label for="playerTwoId">Player Two Drexel Email:</label>
+            <input type="text" id="playerTwoId" name="playerTwoId" onkeypress="return event.keyCode!=13" placeholder="Enter Player Two's Drexel Email" />
             <br />
             <div class="row">
               <div class="columns medium-6">

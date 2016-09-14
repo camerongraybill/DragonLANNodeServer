@@ -64,6 +64,24 @@ h2{
 	text-align:center;
 }
 
+#log{
+	color:#f8c811;
+	display:block;
+	margin:0 auto;
+	margin-top:20px;
+	margin-left:10px;
+	width:70px;
+	background-color:#4064af;
+	font-weight:700;
+	padding:10px;
+	border-radius:25px;
+}
+
+#log:hover{
+	color:#4064af;
+	background-color:#f8c811;
+}
+
 #smash4{
 	color:#669dff;
 }
@@ -297,6 +315,10 @@ i{
 		font-weight:700;
 	}
 
+	#log{
+		margin-left:20px;
+	}
+
 	#reg h2{
 		margin-top:40px;
 	}
@@ -321,6 +343,10 @@ i{
 
 	#head{
 		padding:20px;
+	}
+
+	#log{
+		margin-left:35px;
 	}
 
 	h1{
