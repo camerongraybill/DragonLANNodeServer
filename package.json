@@ -10,7 +10,8 @@
     "fs": "^0.0.1-security",
     "http": "^0.0.0",
     "moment": "^2.14.1",
-    "mongojs": "^2.4.0"
+    "mongojs": "^2.4.0",
+    "passport-local-authenticate": "^1.2.0"
   },
   "devDependencies": {},
   "scripts": {

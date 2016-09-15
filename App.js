@@ -76,19 +76,39 @@ var Strategy = require('passport-local').Strategy;
 	app.use(passport.session());
 	//Endpoints
 	app.get('/', function(req, res){
-		res.render(__dirname + '/pages/jade/index.jade', {pageData: {name: req.user}});
+		if(req.user){
+		res.render(__dirname + '/pages/jade/index.jade', {user: req.user['name']});
+		}
+		else{
+			res.render(__dirname + '/pages/jade/index.jade', {});
+		}
 	});
 	app.get('/register', function(req, res){
-		res.render(__dirname + '/pages/jade/register.jade', {pageData: {name: req.user}});
+		if(req.user){
+		res.render(__dirname + '/pages/jade/register.jade', {user: req.user['name']});
+		}
+		else{
+			res.render(__dirname + '/pages/jade/register.jade', {});
+		}
 	});
 	app.get('/report', function(req, res){
-		res.render(__dirname + '/pages/jade/report.jade', {pageData: {name: req.user}});
+		if(req.user){
+		res.render(__dirname + '/pages/jade/report.jade', {user: req.user['name']});
+		}
+		else{
+			res.render(__dirname + '/pages/jade/report.jade', {});
+		}
 	});
 	app.post('/login', passport.authenticate('local', {failureRedirect: '/register'}), function(req, res){
 		res.redirect('/');
 	});
 	app.get('/login', function(req, res){
-		res.render(__dirname + '/pages/jade/login.jade', {pageData: {name: req.user}});
+		if(req.user){
+		res.render(__dirname + '/pages/jade/login.jade', {user: req.user['name']});
+		}
+		else{
+			res.render(__dirname + '/pages/jade/login.jade', {});
+		}
 	});
 	app.get('/logout', function(req, res){
 		req.logout();

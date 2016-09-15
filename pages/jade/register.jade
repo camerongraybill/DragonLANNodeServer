@@ -86,7 +86,7 @@ html.no-js(lang='en', dir='ltr')
               li
                 a(href='/report') Report Match
     #logdiv
-      if (typeof(pageData.name) == 'undefined')
+      if (typeof(user) == 'undefined')
         a(href='/login')
           #log.columns.small-12.text-center Login
       else
@@ -100,10 +100,10 @@ html.no-js(lang='en', dir='ltr')
         input#name(type='text', name='name', onkeypress='return event.keyCode!=13', placeholder="Enter the new user's name")
         br
         label(for='password') Password:
-        input#password(type='text', name='password', onkeypress='return event.keyCode!=13', placeholder="Enter your new password")
+        input#password(type='password', name='password', onkeypress='return event.keyCode!=13', placeholder="Enter your new password")
         br
-        label(for='passwordC') Confrim Password:
-        input#passwordC(type='text', name='passwordC', onkeypress='return event.keyCode!=13', placeholder='Enter your new password again')
+        label(for='passwordC') Confirm Password:
+        input#passwordC(type='password', name='passwordC', onkeypress='return event.keyCode!=13', placeholder='Enter your new password again')
         br
         p What games would you like to be ranked for?
         input(type='checkbox', name='game', value='smashFour', onchange='boxchecked(this)')

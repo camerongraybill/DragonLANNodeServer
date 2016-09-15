@@ -11,11 +11,12 @@ html.no-js(lang='en', dir='ltr')
     link(rel='stylesheet', href='css/app.css')
     script(src='/socket.io/socket.io.js')
     script.
+      if('#{user}'){var pageData = '#{user}';}
       var socket = io();
       function submitGame(){
       if(document.getElementById("playerTwo").value != "" && document.getElementById("playerOneWins").value != "" && document.getElementById("playerTwoWins").value != "" && document.getElementsByName("game")[0].value != "pickOne"){
       jsonToReturn = {};
-      jsonToReturn['playerOne'] = pageData.name
+      jsonToReturn['playerOne'] = pageData
       jsonToReturn['playerTwo'] = document.getElementById("playerTwo").value;
       jsonToReturn['game'] = document.getElementsByName("game")[0].value
       jsonToReturn['playerOneGamesWon'] = document.getElementById("playerOneWins").value;
@@ -29,6 +30,7 @@ html.no-js(lang='en', dir='ltr')
       socket.on('report', function(data){
       if(data['status']){
       alert("Match reported successfully");
+      window.location.replace("/");
       }
       else if(data['reason'] == 'playerDoesNotExist'){
       alert("Player " + data['playerName'] + " does not exist");
@@ -44,8 +46,7 @@ html.no-js(lang='en', dir='ltr')
       }
       else{
       alert("Unknown Error");
-      }
-      });
+      }});
   body
     header.row.expanded.small-collapse.medium-uncollapse
       nav
@@ -69,7 +70,7 @@ html.no-js(lang='en', dir='ltr')
                 a(href='/report') Report Match
     section.row.expanded
       #logdiv
-      if (typeof(pageData.name) == 'undefined')
+      if (typeof(user) == 'undefined')
         a(href='/login')
           #log.columns.small-12.text-center Login
       else
@@ -84,11 +85,11 @@ html.no-js(lang='en', dir='ltr')
           .row
             .columns.medium-6
               label(for='playerOneWins') How many games did you win?
-              input#playerOneWins(type='text', name='playerOneWins', onkeypress='return event.keyCode!=13', placeholder='Number of games Player One won')
+              input#playerOneWins(type='text', name='playerOneWins', onkeypress='return event.keyCode!=13', placeholder='Number of games you won')
               br
             .columns.medium-6
               label(for='playerTwoWins') How many games did your opponent win?
-              input#playerTwoWins(type='text', name='playerTwoWins', onkeypress='return event.keyCode!=13', placeholder='Number of games Player Two won')
+              input#playerTwoWins(type='text', name='playerTwoWins', onkeypress='return event.keyCode!=13', placeholder='Number of games your opponent won')
               br
             label(for='game') Which game was this in?
             select(name='game')
@@ -97,7 +98,7 @@ html.no-js(lang='en', dir='ltr')
               option(value='melee') Melee
               option(value='pm') Project M
             br
-            if (typeof(pageData.name) == 'undefined')
+            if (typeof(user) == 'undefined')
               input(type='button', value='Submit Game', onclick='alert(\'You must be logged in to perform this action\')')
             else
               input(type='button', value='Submit Game', onclick='submitGame()')
