@@ -56,8 +56,12 @@ html.no-js(lang='en', dir='ltr')
                   a#pmag(href='#pm') Project M
     #hide.hide-for-medium
     #logdiv
-      a(href='#')
-        #log.columns.small-12.text-center Login
+      if (typeof(pageData.name) == 'undefined')
+        a(href='/login')
+          #log.columns.small-12.text-center Login
+      else
+        a(href='/logout')
+          #log.columns.small-12.text-center Logout
     .row
       a(name='smashFour')
       h2#rank.columns.small-12(data-magellan-destination='smashFour') Rankings - Smash 4

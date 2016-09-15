@@ -57,11 +57,11 @@ var Strategy = require('passport-local').Strategy;
 	
 	passport.serializeUser(function(user, callback){
 		//console.log(user);
-		callback(null, user['studentID']);
+		callback(null, user['name']);
 	});
 	
 	passport.deserializeUser(function(id, callback){
-		players.find({studentID:id}, function(err, docs){
+		players.find({name:id}, function(err, docs){
 			console.log(id);
 			console.log(docs);
 			if(err) {return callback(err)};
@@ -76,18 +76,21 @@ var Strategy = require('passport-local').Strategy;
 	app.use(passport.session());
 	//Endpoints
 	app.get('/', function(req, res){
-		res.render(__dirname + '/pages/jade/index.jade');
+		res.render(__dirname + '/pages/jade/index.jade', {pageData: {name: req.user}});
 	});
 	app.get('/register', function(req, res){
-		res.render(__dirname + '/pages/jade/register.jade');
+		res.render(__dirname + '/pages/jade/register.jade', {pageData: {name: req.user}});
 	});
 	app.get('/report', function(req, res){
-		res.render(__dirname + '/pages/jade/report.jade');
+		res.render(__dirname + '/pages/jade/report.jade', {pageData: {name: req.user}});
 	});
 	app.post('/login', passport.authenticate('local', {failureRedirect: '/register'}), function(req, res){
-		res.redirect('/report');
+		res.redirect('/');
 	});
-	app.post('/logout', function(req, res){
+	app.get('/login', function(req, res){
+		res.render(__dirname + '/pages/jade/login.jade', {pageData: {name: req.user}});
+	});
+	app.get('/logout', function(req, res){
 		req.logout();
 		res.redirect('back');
 	});
@@ -100,7 +103,7 @@ var Strategy = require('passport-local').Strategy;
 			var smashFour = data['smashFour'];
 			var pm = data['pm'];
 			var newName = data['name'];
-			var stuID = data['stuID'];
+			var pass = data['password'];
 			players.find({name: newName}, function(err, docs){
 				if(err){
 					socket.emit('register', {status: 0, reason: 'error'});
@@ -111,7 +114,7 @@ var Strategy = require('passport-local').Strategy;
 				}
 				else{
 					fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'User ' + newName + ' created with rating of 1200\n');
-					players.insert({name: newName, studentID: stuID}, function(){
+					players.insert({name: newName, password: pass}, function(){
 					if(melee){players.update({name:newName}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, meleeMain: data['meleeMain']}});}
 					if(smashFour){players.update({name:newName}, {$set: {smashFourRating: 1200, smashFourWins: 0, smashFourLosses: 0, smashFourMatchups: {}, smashFourMain: data['smashFourMain']}});}
 					if(pm){players.update({name:newName}, {$set: {pmRating: 1200, pmWins: 0, pmLosses: 0, pmMatchups: {}, pmMain: data['pmMain']}});}

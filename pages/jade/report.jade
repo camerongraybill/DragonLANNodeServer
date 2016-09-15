@@ -13,11 +13,9 @@ html.no-js(lang='en', dir='ltr')
     script.
       var socket = io();
       function submitGame(){
-      if(document.getElementById("playerOne").value != "" && document.getElementById("playerTwo").value != "" && document.getElementById("playerOneWins").value != "" && document.getElementById("playerTwoWins").value != "" && document.getElementsByName("game")[0].value != "pickOne"){
+      if(document.getElementById("playerTwo").value != "" && document.getElementById("playerOneWins").value != "" && document.getElementById("playerTwoWins").value != "" && document.getElementsByName("game")[0].value != "pickOne"){
       jsonToReturn = {};
-      jsonToReturn['playerOne'] = document.getElementById("playerOne").value;
-      jsonToReturn['playerOneId'] = document.getElementById("playerOneId").value.substring(0, document.getElementById("playerOneId").value.indexOf('@'));
-      jsonToReturn['playerTwoId'] = document.getElementById("playerTwoId").value.substring(0, document.getElementById("playerTwoId").value.indexOf('@'));
+      jsonToReturn['playerOne'] = pageData.name
       jsonToReturn['playerTwo'] = document.getElementById("playerTwo").value;
       jsonToReturn['game'] = document.getElementsByName("game")[0].value
       jsonToReturn['playerOneGamesWon'] = document.getElementById("playerOneWins").value;
@@ -71,30 +69,25 @@ html.no-js(lang='en', dir='ltr')
                 a(href='/report') Report Match
     section.row.expanded
       #logdiv
-        a(href='#')
+      if (typeof(pageData.name) == 'undefined')
+        a(href='/login')
           #log.columns.small-12.text-center Login
+      else
+        a(href='/logout')
+          #log.columns.small-12.text-center Logout
       h2#smash4.columns.small-12 Report Your Match
       form#smashform.columns.small-12.medium-10.medium-offset-1(action='', method='', enctype='')
         fieldset
-          label(for='playerOne') Player One tag:
-          input#playerOne(type='text', name='playerOne', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's tag")
-          br
-          label(for='playerTwo') Player Two tag:
+          label(for='playerTwo') Opponent's tag:
           input#playerTwo(type='text', name='playerTwo', onkeypress='return event.keyCode!=13', placeholder="Enter Player Two's tag")
-          br
-          label(for='playerOneId') Player One Drexel Email:
-          input#playerOneId(type='text', name='playerOneId', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's Drexel Email")
-          br
-          label(for='playerTwoId') Player Two Drexel Email:
-          input#playerTwoId(type='text', name='playerTwoId', onkeypress='return event.keyCode!=13', placeholder="Enter Player Two's Drexel Email")
           br
           .row
             .columns.medium-6
-              label(for='playerOneWins') How many games did Player One win?
+              label(for='playerOneWins') How many games did you win?
               input#playerOneWins(type='text', name='playerOneWins', onkeypress='return event.keyCode!=13', placeholder='Number of games Player One won')
               br
             .columns.medium-6
-              label(for='playerTwoWins') How many games did Player Two win?
+              label(for='playerTwoWins') How many games did your opponent win?
               input#playerTwoWins(type='text', name='playerTwoWins', onkeypress='return event.keyCode!=13', placeholder='Number of games Player Two won')
               br
             label(for='game') Which game was this in?
@@ -104,7 +97,10 @@ html.no-js(lang='en', dir='ltr')
               option(value='melee') Melee
               option(value='pm') Project M
             br
-            input(type='button', value='Submit Game', onclick='submitGame()')
+            if (typeof(pageData.name) == 'undefined')
+              input(type='button', value='Submit Game', onclick='alert(\'You must be logged in to perform this action\')')
+            else
+              input(type='button', value='Submit Game', onclick='submitGame()')
       .row.expanded
         #regsam.columns.small-12
           img(src='img/S@M.png', alt='logo thing')

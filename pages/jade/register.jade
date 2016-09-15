@@ -15,16 +15,16 @@ html.no-js(lang='en', dir='ltr')
       function submitUser(){
       var checkedBoxes = document.getElementsByName('game');
       for(var i = 0; i < checkedBoxes.length; i++){
-      if((checkedBoxes[i].checked && document.getElementById(checkedBoxes[i].value + 'Main').value == "pickOne") || document.getElementById('name').value == "" || document.getElementById("stuID").value == ""){
+      if((checkedBoxes[i].checked && document.getElementById(checkedBoxes[i].value + 'Main').value == "pickOne") || document.getElementById('name').value == "" || document.getElementById("password").value == ""){
       alert("Please fill in all of the information");
       return;
       }
-      if(document.getElementById("stuID").value != document.getElementById("stuIDC").value){
+      if(document.getElementById("password").value != document.getElementById("passwordC").value){
       alert("Emails do not match");
       return;
       }
       }
-      socket.emit('register', {melee:checkedBoxes[1].checked,smashFour:checkedBoxes[0].checked,pm:checkedBoxes[2].checked,name:document.getElementById('name').value,meleeMain:document.getElementById('meleeMain').value,smashFourMain:document.getElementById('smashFourMain').value,pmMain:document.getElementById('pmMain').value,stuID:document.getElementById("stuID").value.substring(0, document.getElementById("stuID").value.indexOf('@'))});
+      socket.emit('register', {melee:checkedBoxes[1].checked,smashFour:checkedBoxes[0].checked,pm:checkedBoxes[2].checked,name:document.getElementById('name').value,meleeMain:document.getElementById('meleeMain').value,smashFourMain:document.getElementById('smashFourMain').value,pmMain:document.getElementById('pmMain').value,password:document.getElementById("password").value});
       for(var i = 0; i < checkedBoxes.length; i++){
       checkedBoxes[i].checked = 0;
       }
@@ -32,7 +32,22 @@ html.no-js(lang='en', dir='ltr')
       socket.on('register', function(data){
       if(data['status']){
       alert("User registered");
-      window.location.replace("http://dusmashladder.com");
+      var method = "post";
+      var form = document.createElement("form");
+      form.setAttribute("method", method);
+      form.setAttribute("action", "/login");
+      var unameField = document.createElement("input");
+      unameField.setAttribute("type", "hidden");
+      unameField.setAttribute("name", "username");
+      unameField.setAttribute("value", document.getElementById("name").value);
+      form.appendChild(unameField);
+      var passField = document.createElement("input");
+      passField.setAttribute("type", "hidden");
+      passField.setAttribute("name", "password");
+      passField.setAttribute("value", document.getElementById("password").value);
+      form.appendChild(passField);
+      document.body.appendChild(form);
+      form.submit();
       }
       else if(data['reason'] == 'exists'){
       alert("User " + document.getElementById("name").value + " already exists");
@@ -71,20 +86,24 @@ html.no-js(lang='en', dir='ltr')
               li
                 a(href='/report') Report Match
     #logdiv
-      a(href='#')
-        #log.columns.small-12.text-center Login
+      if (typeof(pageData.name) == 'undefined')
+        a(href='/login')
+          #log.columns.small-12.text-center Login
+      else
+        a(href='/logout')
+          #log.columns.small-12.text-center Logout
     #reg.row.expanded
       h2.columns.small-12 Register Your Tag
     form#regform.columns.small-12.medium-8.medium-offset-2(action='', method='', enctype='')
       fieldset
-        label(for='name') GamerTag:
+        label(for='name') Username:
         input#name(type='text', name='name', onkeypress='return event.keyCode!=13', placeholder="Enter the new user's name")
         br
-        label(for='stuID') Drexel Email:
-        input#stuID(type='text', name='stuID', onkeypress='return event.keyCode!=13', placeholder="Enter your Drexel Email for example: 'abc12@drexel.edu'. This is only used for authentication.")
+        label(for='password') Password:
+        input#password(type='text', name='password', onkeypress='return event.keyCode!=13', placeholder="Enter your new password")
         br
-        label(for='stuIDC') Confrim Drexel Email:
-        input#stuIDC(type='text', name='stuIDC', onkeypress='return event.keyCode!=13', placeholder='Enter your Drexel Email again')
+        label(for='passwordC') Confrim Password:
+        input#passwordC(type='text', name='passwordC', onkeypress='return event.keyCode!=13', placeholder='Enter your new password again')
         br
         p What games would you like to be ranked for?
         input(type='checkbox', name='game', value='smashFour', onchange='boxchecked(this)')
