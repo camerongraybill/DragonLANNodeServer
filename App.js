@@ -11,6 +11,7 @@ var moment = require('moment');
 var socketIO = require('socket.io');
 var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
+var auth = require('passport-local-authenticate');
 
 
 //Initialize globals
@@ -46,24 +47,22 @@ var Strategy = require('passport-local').Strategy;
 	
 	passport.use(new Strategy(function(username, password, callback){
 		players.find({name: username}, function(err, docs){
-			//console.log(docs);
 			var user = docs[0];
 			if(err){return callback(err);}
 			if(!user){return callback(null, false);}
-			if(user['password'] != password){return callback(null, false);}
-			return callback(null, user);
+			auth.verify(password, user['password'], function(err, verified){
+				if(!verified){return callback(null, false);}
+				return callback(null, user);
+			});
 		});
 	}));
 	
 	passport.serializeUser(function(user, callback){
-		//console.log(user);
 		callback(null, user['name']);
 	});
 	
 	passport.deserializeUser(function(id, callback){
 		players.find({name:id}, function(err, docs){
-			console.log(id);
-			console.log(docs);
 			if(err) {return callback(err)};
 			callback(null, docs[0]);
 		});
@@ -134,14 +133,17 @@ var Strategy = require('passport-local').Strategy;
 				}
 				else{
 					fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'User ' + newName + ' created with rating of 1200\n');
-					players.insert({name: newName, password: pass}, function(){
-					if(melee){players.update({name:newName}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, meleeMain: data['meleeMain']}});}
-					if(smashFour){players.update({name:newName}, {$set: {smashFourRating: 1200, smashFourWins: 0, smashFourLosses: 0, smashFourMatchups: {}, smashFourMain: data['smashFourMain']}});}
-					if(pm){players.update({name:newName}, {$set: {pmRating: 1200, pmWins: 0, pmLosses: 0, pmMatchups: {}, pmMain: data['pmMain']}});}
-					});
-					socket.emit('register', {status: 1, reason: 'success'});
-					buildScoreboard(function(data){
-						io.emit('refreshScoreboard', {reason: 'newUser', scoreboardJson: data});
+					auth.hash(pass, function(err, hashed){
+						if(err){socket.emit('register',{status:0, reason: 'error hashing'}); return;}
+						players.insert({name: newName, password: hashed}, function(){
+						if(melee){players.update({name:newName}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, meleeMain: data['meleeMain']}});}
+						if(smashFour){players.update({name:newName}, {$set: {smashFourRating: 1200, smashFourWins: 0, smashFourLosses: 0, smashFourMatchups: {}, smashFourMain: data['smashFourMain']}});}
+						if(pm){players.update({name:newName}, {$set: {pmRating: 1200, pmWins: 0, pmLosses: 0, pmMatchups: {}, pmMain: data['pmMain']}});}
+						});
+						socket.emit('register', {status: 1, reason: 'success'});
+						buildScoreboard(function(data){
+							io.emit('refreshScoreboard', {reason: 'newUser', scoreboardJson: data});
+						});
 					});
 				}
 			});
@@ -226,7 +228,6 @@ var Strategy = require('passport-local').Strategy;
 							playerTwoJson['$set'][gamePlayed + 'Rating'] = playerTwoNewRating;
 							playerTwoJson['$set'][gamePlayed + 'Wins'] = playerTwoEntry[0][gamePlayed + 'Wins'] + playerTwoGamesWon;
 							playerTwoJson['$set'][gamePlayed + 'Losses'] = playerTwoEntry[0][gamePlayed + 'Losses'] + playerOneGamesWon;
-							console.log([playerOneJson, playerTwoJson]);
 							players.update({name: playerOne}, playerOneJson);
 							players.update({name: playerTwo}, playerTwoJson);
 							socket.emit('report', {status: 1, reason: 'success'});
