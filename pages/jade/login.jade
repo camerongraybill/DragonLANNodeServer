@@ -1,0 +1,55 @@
+doctype html
+html.no-js(lang='en', dir='ltr')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='x-ua-compatible', content='ie=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title DU Smash Ladder
+    link(href='https://fonts.googleapis.com/css?family=Arvo:400,700', rel='stylesheet')
+    link(rel='stylesheet', href='css/foundation-icons.css')
+    link(rel='stylesheet', href='css/foundation.css')
+    link(rel='stylesheet', href='css/app.css')
+    script(src='/socket.io/socket.io.js')
+    script.
+  body
+    header.row.expanded.small-collapse.medium-uncollapse
+      nav
+        .title-bar(data-responsive-toggle='example-menu', data-hide-for='medium')
+          section.row.small-collapse
+            .columns.small-10
+              h1 D.U. Smash Ladder
+            .columns.small-2.text-right
+              button.menu-icon(type='button', data-toggle='')
+              .title-bar-title
+        #example-menu.top-bar
+          .row.hide-for-small-only.expanded
+            h1.columns.medium-12 Drexel University Smash Ladder
+          #cenav.row.expanded
+            ul.menu.vertical.medium-horizontal.columns.medium-12(data-responsive-menu='drilldown medium-dropdown')
+              li
+                a(href='/') Scoreboard
+              li
+                a(href='/register') Register
+              li
+                a(href='/report') Report Match
+    #reg.row.expanded
+      h2.columns.small-12 Log In
+    form#regform.columns.small-12.medium-8.medium-offset-2(action='/login', method='post', enctype='')
+      fieldset
+        label(for='username') Username:
+        input#username(type='text', name='username', onkeypress='return event.keyCode!=13', placeholder='Enter your username')
+        br
+        label(for='password') Password:
+        input#password(type='text', name='password', placeholder='Enter your password')
+        br
+        input(type='submit', value='Log In', onclick='submitUser()')
+    .row.expanded
+      #regsam.columns.small-12
+        img(src='img/S@M.png', alt='logo thing')
+    .row.expanded
+      a(href='https://www.facebook.com/groups/dragoonsSMASH/')
+        i.fi-social-facebook.columns.small-12
+    script(src='js/vendor/jquery.js')
+    script(src='js/vendor/what-input.js')
+    script(src='js/vendor/foundation.js')
+    script(src='js/app.js')
