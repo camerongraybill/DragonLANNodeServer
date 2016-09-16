@@ -6,9 +6,9 @@ html.no-js(lang='en', dir='ltr')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     title DU Smash Ladder
     link(href='https://fonts.googleapis.com/css?family=Arvo:400,700', rel='stylesheet')
-    link(rel='stylesheet', href='css/foundation-icons.css')
-    link(rel='stylesheet', href='css/foundation.css')
-    link(rel='stylesheet', href='css/app.css')
+    link(rel='stylesheet', href='/css/foundation-icons.css')
+    link(rel='stylesheet', href='/css/foundation.css')
+    link(rel='stylesheet', href='/css/app.css')
     script(src='/socket.io/socket.io.js')
     script.
   body
@@ -33,23 +33,14 @@ html.no-js(lang='en', dir='ltr')
               li
                 a(href='/report') Report Match
     #reg.row.expanded
-      h2.columns.small-12 Log In
-    form#regform.columns.small-12.medium-8.medium-offset-2(action='/login', method='post', enctype='')
-      fieldset
-        label(for='username') Username:
-        input#username(type='text', name='username', onkeypress='return event.keyCode!=13', placeholder='Enter your username')
-        br
-        label(for='password') Password:
-        input#password(type='password', name='password', placeholder='Enter your password')
-        br
-        input(type='submit', value='Log In')
+      h2.columns.small-12 Could not find user !{user}
     .row.expanded
       #regsam.columns.small-12
-        img(src='img/S@M.png', alt='logo thing')
+        img(src='/img/S@M.png', alt='logo thing')
     .row.expanded
       a(href='https://www.facebook.com/groups/dragoonsSMASH/')
         i.fi-social-facebook.columns.small-12
-    script(src='js/vendor/jquery.js')
-    script(src='js/vendor/what-input.js')
-    script(src='js/vendor/foundation.js')
-    script(src='js/app.js')
+    script(src='/js/vendor/jquery.js')
+    script(src='/js/vendor/what-input.js')
+    script(src='/js/vendor/foundation.js')
+    script(src='/js/app.js')
