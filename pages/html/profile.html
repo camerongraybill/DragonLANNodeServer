@@ -1,0 +1,154 @@
+<!doctype html>
+<html class="no-js" lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DU Smash Ladder</title>
+    <link href="https://fonts.googleapis.com/css?family=Arvo:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="/css/foundation-icons.css">
+    <link rel="stylesheet" href="/css/foundation.css">
+    <link rel="stylesheet" href="/css/app.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+	var userData = JSON.parse('!{userJson}');
+	window.onload = function buildData(){
+		document.getElementById('regtag').innerHTML = "<h2 class=\"columns small-12 medium-6\">" + userData.displayName + "</h2>";
+		function isEmpty(obj){return Object.keys(obj).length === 0;}
+		var userInfo = "<section class=\"row\"><div id=\"score\" class=\"columns small-12\"><table><thead><tr><th class=\"text-center\">Game</th><th class=\"text-center\">Rating</th><th class=\"text-center\">Main</th><th class=\"text-center\">Wins</th><th class=\"text-center\">Losses</th><th class=\"text-center\">Win Rate</th></tr></thead><tbody id=\'smashFourTableBody\'>";
+		if(userData.meleeRating){
+		userInfo += "<tr><td>Melee</td><td>" + userData.meleeRating + "</td><td><img src='/img/melee/" + userData.meleeMain + ".png'\></td><td>" + userData.meleeWins + "</td><td>" + userData.meleeLosses + "</td><td>" + 100 * userData.meleeWins / (userData.meleeWins + userData.meleeLosses) + "%</td></tr>"
+		}
+		if(userData.pmRating){
+		userInfo += "<tr><td>Project M</td><td>" + userData.pmRating + "</td><td><img src='/img/pm/" + userData.pmMain + ".png'\></td><td>" + userData.pmWins + "</td><td>" + userData.pmLosses + "</td><td>" + 100 * userData.pmWins / (userData.pmWins + userData.pmLosses) + "%</td></tr>"
+		}
+		if(userData.smashFourRating){
+		userInfo += "<tr><td>Smash 4</td><td>" + userData.smashFourRating + "</td><td><img  style=\"height:32px;width:32px;\" src=\'/img/smashFour/" + userData.smashFourMain + ".png\'\></td><td>" + userData.smashFourWins + "</td><td>" + userData.smashFourLosses + "</td><td>" + 100 * userData.smashFourWins / (userData.smashFourWins + userData.smashFourLosses) + "%</td></tr>"
+		}
+		userInfo += "</tbody></table></div></section>";
+		document.getElementById('userInfo').innerHTML = userInfo;
+		var div = "";
+
+		if(userData.meleeMatchups){
+			if(!isEmpty(userData.meleeMatchups)){
+				div += "<section class=\"row\"><h2>Melee Matchups</h2><div id=\"score\" class=\"columns small-12\"><table><thead><tr><th class=\"text-center\">Against</th><th class=\"text-center\">Wins</th><th class=\"text-center\">Losses</th><th class=\"text-center\">Win Rate</th></tr></thead><tbody id=\'smashFourTableBody\'>"
+				for(var key in userData.meleeMatchups){
+					div += "<tr><td class=\"text-center\">" + key + "</td><td class=\"text-center\">" + userData.meleeMatchups[key].wins + "</td><td class=\"text-center\">" +  userData.meleeMatchups[key].losses + "</td><td class=\"text-center\">" + 100 * userData.meleeMatchups[key].wins / (userData.meleeMatchups[key].wins + userData.meleeMatchups[key].losses) + "%</td>";
+				}
+				div += "</tbody></table></div></section><br><br><br>";
+			}
+		}
+		if(userData.smashFourMatchups){
+			if(!isEmpty(userData.smashFourMatchups)){
+				div += "<section class=\"row\"><h2>Smash 4 Matchups</h2><div id=\"score\" class=\"columns small-12\"><table><thead><tr><th class=\"text-center\">Against</th><th class=\"text-center\">Wins</th><th class=\"text-center\">Losses</th><th class=\"text-center\">Win Rate</th></tr></thead><tbody id=\'smashFourTableBody\'>"
+				for(var key in userData.smashFourMatchups){
+					div += "<tr><td class=\"text-center\">" + key + "</td><td class=\"text-center\">" + userData.smashFourMatchups[key].wins + "</td><td class=\"text-center\">" +  userData.smashFourMatchups[key].losses + "</td><td class=\"text-center\">" + 100 * userData.smashFourMatchups[key].wins / (userData.smashFourMatchups[key].wins + userData.smashFourMatchups[key].losses) + "%</td>";
+				}
+				div += "</tbody></table></div></section><br><br><br>";
+			}
+		}
+		if(userData.pmMatchups){
+			if(!isEmpty(userData.pmMatchups)){
+				div += "<section class=\"row\"><h2>Project M Matchups</h2><div id=\"score\" class=\"columns small-12\"><table><thead><tr><th class=\"text-center\">Against</th><th class=\"text-center\">Wins</th><th class=\"text-center\">Losses</th><th class=\"text-center\">Win Rate</th></tr></thead><tbody id=\'smashFourTableBody\'>"
+				for(var key in userData.pmMatchups){
+					div += "<tr><td class=\"text-center\">" + key + "</td><td class=\"text-center\">" + userData.pmMatchups[key].wins + "</td><td class=\"text-center\">" +  userData.pmMatchups[key].losses + "</td><td class=\"text-center\">" + 100 * userData.pmMatchups[key].wins / (userData.pmMatchups[key].wins + userData.pmMatchups[key].losses) + "%</td>";
+				}
+				div += "</tbody></table></div></section><br><br><br>";
+			}
+		}
+		document.getElementById('gameMatchups').innerHTML = div;
+	}
+  </script>
+  
+  </head>
+  <body>
+
+      <header class="row expanded small-collapse medium-uncollapse">
+        <nav>
+          <div class="title-bar" data-responsive-toggle="example-menu" data-hide-for="medium">
+            <section class="row small-collapse">
+              <div class="columns small-10">
+                <h1>D.U. Smash Ladder</h1>
+              </div>
+              <div class="columns small-2 text-right">
+                <button class="menu-icon" type="button" data-toggle></button>
+              <div class="title-bar-title"></div>
+              </div>
+            </section>
+            
+        </div>
+
+        <div class="top-bar" id="example-menu">
+            <div class="row hide-for-small-only expanded">
+              <h1 class="columns medium-12">Drexel University Smash Ladder</h1>
+            </div>
+            <div id="cenav" class="row expanded">
+              <ul class="menu vertical medium-horizontal columns medium-12" data-responsive-menu="drilldown medium-dropdown">
+                  <li><a href="/">Scoreboard</a></li>
+                  <li><a href="/register">Register</a></li>
+                  <li><a href="/report">Report Match</a></li>
+                </ul>
+            </div>
+        </div>
+        </nav>
+      </header>
+
+      <div id="logdiv" class="row">
+        <a href="#"><div id="log" class="columns small-12 text-center">Login</div></a>
+      </div>
+
+      <div id="pro" class="row">
+        <div id="regtag">
+          <h2 class="columns small-12 medium-6">GamerTag</h2>
+        </div>
+
+        <div id="main">
+          <div id="mainimg" class="columns small-12 medium-6">
+            <img class="columns small-12 medium-6" src="/img/smashball.png" alt="">
+          </div>
+        </div>
+      </div>
+	  <div id="userInfo">
+	  </div>
+	  <div id="gameMatchups">
+      <section class="row">
+	  <h1>Melee Matchups</h1>
+    <div id="score" class="columns small-12">
+       <table>
+      <thead>
+        <tr>
+          <th class="text-center">Player</th>
+          <th class="text-center">Wins</th>
+          <th class="text-center">Losses</th>
+          <th class="text-center">Win Rate</th> 
+        </tr>
+      </thead>
+      <tbody id='smashFourTableBody'>
+        <tr>
+          <td class="text-center">####</td> 
+          <td class="text-center">####</td> 
+          <td class="text-center">####</td>  
+          <td class="text-center">####</td> 
+        </tr>
+      </tbody>
+        </table>
+    </div>
+  </section>
+	</div>
+
+      <div class="row expanded">
+      <div id="regsam" class="columns small-12">
+        <img src="/img/S@M.png" alt="logo thing">
+      </div>
+    </div>
+
+    <div class="row expanded">
+      <a href="https://www.facebook.com/groups/dragoonsSMASH/"><i class="fi-social-facebook columns small-12"></i></a>
+    </div>
+
+    <script src="/js/vendor/jquery.js"></script>
+    <script src="/js/vendor/what-input.js"></script>
+    <script src="/js/vendor/foundation.js"></script>
+    <script src="/js/app.js"></script>
+  </body>
+</html>

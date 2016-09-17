@@ -115,7 +115,14 @@ var auth = require('passport-local-authenticate');
 		var uname = req.params.username;
 		players.find({username: uname}, {password:0, _id:0}, function(err, docs){
 			if(err || !docs[0]){res.render(__dirname + '/pages/jade/unf.jade', {user: uname});}
-			else{res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0])});}
+			else{
+				if(req.user){
+				res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), user: req.user['username']});
+				}
+				else{
+					res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0])});;
+				}
+			}
 		});
 	});
 	//HTTP POST Endpoints
@@ -227,7 +234,7 @@ var auth = require('passport-local-authenticate');
 								var playerTwoNewRating = playerTwoRatingBefore + Math.floor(kVal*(playerTwoScore - playerTwoExpected));
 							}
 							//Insert the recording of the match into the matches collection
-							matches.insert({usernames: [playerOne, playerTwo], ratingsBefore: [playerOneRatingBefore, playerTwoRatingBefore], ratingsAfter: [playerOneNewRating, playerTwoNewRating], game: gamePlayed});
+							matches.insert({reporter: {username: playerOne, ratingBefore: playerOneRatingBefore, ratingAfter: playerOneNewRating}, opponent: {username: playerTwo, ratingBefore: playerTwoRatingBefore, ratingAfter: playerTwoNewRating}, game: gamePlayed});
 							//Build the JSON for the update to the players collection
 							var playerOneJson = {$set:{}};
 							if(!playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo]){
