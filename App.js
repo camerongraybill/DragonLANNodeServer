@@ -38,16 +38,105 @@ var auth = require('passport-local-authenticate');
 	app.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
 	//Utility stuff
 	function buildScoreboard(callback){
-		players.find({meleeRating: {$exists: true}}, {meleeRating:1, meleeWins:1, meleeLosses:1, meleeMain:1, displayName:1, username:1}).sort({meleeRating: -1}, function(err, meleePlayers){
+		
+		players.find({meleeRating: {$exists: true}}, {meleeRating:1, meleeWins:1, meleeLosses:1, meleeMain:1, displayName:1, username:1}, function(err, meleePlayers){
+			for (var i = 0; i < meleePlayers.length; i++){
+				if(meleePlayers[i]['meleeWins'] + meleePlayers[i]['meleeLosses'] <= 10){meleePlayers[i]['meleeRating'] = "Unranked"};
+			}
+			shuffle(meleePlayers);
+			meleePlayers.sort(compareToSortMelee);
 			callback({game: 'melee', data: meleePlayers});
 		});
-		players.find({pmRating: {$exists: true}}, {pmRating:1, pmWins:1, pmLosses:1, pmMain:1, displayName:1, username:1}).sort({pmRating: -1}, function(err, pmPlayers){
+		players.find({pmRating: {$exists: true}}, {pmRating:1, pmWins:1, pmLosses:1, pmMain:1, displayName:1, username:1}, function(err, pmPlayers){
+			for (var i = 0; i < pmPlayers.length; i++){
+				if(pmPlayers[i]['pmWins'] + pmPlayers[i]['pmLosses'] <= 10){pmPlayers[i]['pmRating'] = "Unranked"};
+			}
+			shuffle(pmPlayers);
+			pmPlayers.sort(compareToSortPm);
 			callback({game: 'pm', data: pmPlayers});
 		});
-		players.find({smashFourRating: {$exists: true}}, {smashFourRating:1, smashFourWins:1, smashFourLosses:1, smashFourMain:1, displayName:1, username:1}).sort({smashFourRating: -1}, function(err, smashFourPlayers){
+		players.find({smashFourRating: {$exists: true}}, {smashFourRating:1, smashFourWins:1, smashFourLosses:1, smashFourMain:1, displayName:1, username:1}, function(err, smashFourPlayers){
+			for (var i = 0; i < smashFourPlayers.length; i++){
+				if(smashFourPlayers[i]['smashFourWins'] + smashFourPlayers[i]['smashFourLosses'] <= 10){smashFourPlayers[i]['smashFourRating'] = "Unranked"};
+			}
+			shuffle(smashFourPlayers);
+			smashFourPlayers.sort(compareToSortSmashFour);
 			callback({game: 'smashFour', data: smashFourPlayers});
 		});
 	}
+function shuffle(array) {
+    let counter = array.length;
+
+    // While there are elements in the array
+    while (counter > 0) {
+        // Pick a random index
+        let index = Math.floor(Math.random() * counter);
+
+        // Decrease counter by 1
+        counter--;
+
+        // And swap the last element with it
+        let temp = array[counter];
+        array[counter] = array[index];
+        array[index] = temp;
+    }
+
+    return array;
+}
+function compareToSortMelee(a, b){
+	if (a.meleeRating == b.meleeRating){
+		return 0
+	}
+	if (a.meleeRating == "Unranked"){
+		return 1
+	}
+	if (b.meleeRating == "Unranked"){
+		return -1;
+	}
+	if (a.meleeRating < b.meleeRating){
+		return 1;
+	}
+	if (b.meleeRating < a.meleeRating){
+		return -1;
+	}
+	return 0;
+}
+function compareToSortSmashFour(a, b){
+	if (a.smashFourRating == b.smashFourRating){
+		return 0
+	}
+	if (a.smashFourRating == "Unranked"){
+		return 1
+	}
+	if (b.smashFourRating == "Unranked"){
+		return -1;
+	}
+	if (a.smashFourRating < b.smashFourRating){
+		return 1;
+	}
+	if (b.smashFourRating < a.smashFourRating){
+		return -1;
+	}
+	return 0;
+}
+function compareToSortPm(a, b){
+	if (a.pmRating == b.pmRating){
+		return 0
+	}
+	if (a.pmRating == "Unranked"){
+		return 1
+	}
+	if (b.pmRating == "Unranked"){
+		return -1;
+	}
+	if (a.pmRating < b.pmRating){
+		return 1;
+	}
+	if (b.pmRating < a.pmRating){
+		return -1;
+	}
+	return 0;
+}
 	//Passport authentication and login
 	passport.use(new Strategy(function(uname, password, callback){
 		players.find({username: uname}, function(err, docs){
