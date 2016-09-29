@@ -17,12 +17,11 @@
 		var json = data['scoreboardJson']['data'];
 		document.getElementById(game + 'TableBody').innerHTML = "";
 		for(var i = 0; i < json.length; i++){
-			console.log(data);
 			if(game == 'smashFour'){
-				document.getElementById(game + 'TableBody').innerHTML += "<tr><td>" + (i + 1).toString() + "</td><td>" + json[i]['displayName'] + "</td><td class=\"hide-for-small-only\"><img style=\"height:32px;width:32px;\" src='img/" + game + "/" + json[i][game + 'Main'] + ".png'\></td><td>" + json[i][game + 'Wins'] + "</td><td>" + json[i][game + 'Losses'] + "</td><td>" + json[i][game + 'Rating'] + "</td></tr>";
+				document.getElementById(game + 'TableBody').innerHTML += "<tr><td>" + (i + 1).toString() + "</td><td>" + json[i]['displayName'] + "</td><td class='hide-for-small-only'><img style='height:32px;width:32px;' src='img/characterIcons/" + game + "/" + json[i][game + 'Main'] + ".png'\></td><td>" + json[i][game + 'Wins'] + "</td><td>" + json[i][game + 'Losses'] + "</td><td>" + json[i][game + 'Rating'] + "</td></tr>";
 			}
 			else{
-				document.getElementById(game + 'TableBody').innerHTML += "<tr><td>" + (i + 1).toString() + "</td><td>" + json[i]['displayName'] + "</td><td class=\"hide-for-small-only\"> <img src='img/" + game + "/" + json[i][game + 'Main'] + ".png'\></td><td>" + json[i][game + 'Wins'] + "</td><td>" + json[i][game + 'Losses'] + "</td><td>" + json[i][game + 'Rating'] + "</td></tr>";
+				document.getElementById(game + 'TableBody').innerHTML += "<tr><td>" + (i + 1).toString() + "</td><td>" + json[i]['displayName'] + "</td><td class='hide-for-small-only'> <img src='img/characterIcons/" + game + "/" + json[i][game + 'Main'] + ".png'\></td><td>" + json[i][game + 'Wins'] + "</td><td>" + json[i][game + 'Losses'] + "</td><td>" + json[i][game + 'Rating'] + "</td></tr>";
 			}
 		}
 	});

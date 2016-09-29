@@ -1,8 +1,8 @@
 //Includes
+var mongojs = require('mongojs');
 var express = require('express');
 var Discord = require('discord.js');
 var http = require('http');
-var mongojs = require('mongojs');
 var fs = require('fs');
 var util = require('util');
 var favicon = require('serve-favicon');
@@ -113,14 +113,15 @@ var auth = require('passport-local-authenticate');
 	});
 	app.get('/user/:username', function(req, res){
 		var uname = req.params.username;
-		players.find({username: uname}, {password:0, _id:0}, function(err, docs){
+		players.find({username: uname}, {password:0, _id:0, username: 0}, function(err, docs){
 			if(err || !docs[0]){res.render(__dirname + '/pages/jade/unf.jade', {user: uname});}
 			else{
 				if(req.user){
-				res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), user: req.user['username']});
+					if(req.user['username'] == uname){res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), user: req.user['username'], edit: true});}
+					res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), user: req.user['username'], edit: false});
 				}
 				else{
-					res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0])});;
+					res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), edit: false});;
 				}
 			}
 		});
@@ -135,6 +136,25 @@ var auth = require('passport-local-authenticate');
 		buildScoreboard(function(data){
 			socket.emit('refreshScoreboard', {reason: 'firstConnect', scoreboardJson: data});
 		});
+		//To edit a user's account
+		socket.on('editInfo', function(data){
+			var userToChange = data['username'];
+			var pass = data['password'];
+			players.find({username: userToChange}, function(err, docs){
+				if(err || !docs[0]){socket.emit('editInfo', {status:0, reason:"error changing user"}); return;}
+				auth.verify(pass, docs[0]['password'], function(err, verified){
+					if(!verified || err){socket.emit('editInfo', {status:0, reason:"error authenticating user"}); return;}
+					if(data['newPass'] && data['newPass'] != ""){
+						auth.hash(data['newPass'], function(err, hashed){
+							players.update({username:userToChange}, {$set:{password:hashed}});
+						});
+					}
+					if(data['newName'] && data['newName'] != ""){
+						players.update({username:userToChange}, {$set:{displayName: data['newName']}});
+					}
+				});
+			});
+		});
 		//When registering on the register page do this
 		socket.on('register', function(data){
 			//Booleans for if the user is joining that game or not
@@ -144,6 +164,7 @@ var auth = require('passport-local-authenticate');
 			//The new user's name and password
 			var newName = data['name'];
 			var pass = data['password'];
+			var college = data['school'];
 			players.find({username: newName}, function(err, docs){
 				if(err){
 					//If there is an error finding the user, log it
@@ -157,7 +178,7 @@ var auth = require('passport-local-authenticate');
 				else{
 					auth.hash(pass, function(err, hashed){
 						if(err){socket.emit('register',{status:0, reason: 'error hashing'}); return;} //if there is an error hashing the password tell the page to alert
-						players.insert({username: newName, displayName: newName, password: hashed}, function(){
+						players.insert({username: newName, displayName: newName, password: hashed, matchHistory: [], school: college, admin:false}, function(){
 						fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'User ' + newName + ' created\n'); //Log the creation of a new user
 						//Add melee, smash 4 and/or pm to the user
 						if(melee){players.update({username:newName}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, meleeMain: data['meleeMain']}});}
@@ -236,7 +257,12 @@ var auth = require('passport-local-authenticate');
 							//Insert the recording of the match into the matches collection
 							matches.insert({reporter: {username: playerOne, ratingBefore: playerOneRatingBefore, ratingAfter: playerOneNewRating}, opponent: {username: playerTwo, ratingBefore: playerTwoRatingBefore, ratingAfter: playerTwoNewRating}, game: gamePlayed});
 							//Build the JSON for the update to the players collection
-							var playerOneJson = {$set:{}};
+							var playerOneJson = {$set:{}, $push:{}};
+							playerOneJson['$push']['matchHistory'] = {};
+							playerOneJson['$push']['matchHistory']['game'] = gamePlayed;
+							playerOneJson['$push']['matchHistory']['playedAgainst'] = playerTwo;
+							playerOneJson['$push']['matchHistory']['gamesWon'] = playerOneGamesWon;
+							playerOneJson['$push']['matchHistory']['gamesLost'] = playerTwoGamesWon;
 							if(!playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo]){
 								playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo] = {wins:0,losses:0};
 							}
@@ -245,7 +271,12 @@ var auth = require('passport-local-authenticate');
 							playerOneJson['$set'][gamePlayed + 'Rating'] =  playerOneNewRating;
 							playerOneJson['$set'][gamePlayed + 'Wins'] = playerOneEntry[0][gamePlayed + 'Wins'] + playerOneGamesWon;
 							playerOneJson['$set'][gamePlayed + 'Losses'] = playerOneEntry[0][gamePlayed + 'Losses'] + playerTwoGamesWon;
-							var playerTwoJson = {$set:{}};
+							var playerTwoJson = {$set:{}, $push:{}};
+							playerTwoJson['$push']['matchHistory'] = {};
+							playerTwoJson['$push']['matchHistory']['game'] = gamePlayed;
+							playerTwoJson['$push']['matchHistory']['playedAgainst'] = playerOne;
+							playerTwoJson['$push']['matchHistory']['gamesWon'] = playerTwoGamesWon;
+							playerTwoJson['$push']['matchHistory']['gamesLost'] = playerOneGamesWon;
 							if(!playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]){
 								playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne] = {wins:0,losses:0};
 							}
@@ -323,7 +354,7 @@ var auth = require('passport-local-authenticate');
 			}
 			else if(input [1] == 'list' && input[2] == 'games'){
 				//if the command is 'list games' then return a list of the games
-				message.channel.sendMessage('Supported games are: Smash, LoL (League of Legends), Overwatch, DotA2')
+				message.channel.sendMessage('Supported games are: Smash, LoL (League of Legends), Overwatch, DotA2, CS:GO, Hearthstone')
 			}
 			else if(input[1] == 'help' || input.length == 1){
 				message.channel.sendMessage('Sending <@' + message.member.id + '> commands list');

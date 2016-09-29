@@ -13,17 +13,34 @@
   <script>
 	var userData = JSON.parse('!{userJson}');
 	window.onload = function buildData(){
+		var mainHTML = "<img class='columns small-12 medium-6' src='/img/smashball.png' alt=''>";
+		var count = 0;
+		var mains = [];
+		if(userData.meleeRating){
+			mains.append(userData.meleeMain);
+		}
+		if(userData.smashFourRating){
+			mains.append(smashFourMain)
+		}
+		if(userData.pmRating){
+			mains.append(pmMain)
+		}
+		if(mains != []){
+			var choice = mains[Math.floor(Math.random()*mains.length)];
+			mainHTML = "<img class='columns small-12 medium-6' src='/img/profileImages/" + choice + ".png' alt=''>";
+		}
+		document.getElementById('mainimg').innerHTML = mainHTML;
 		document.getElementById('regtag').innerHTML = "<h2 class=\"columns small-12 medium-6\">" + userData.displayName + "</h2>";
 		function isEmpty(obj){return Object.keys(obj).length === 0;}
 		var userInfo = "<section class=\"row\"><div id=\"score\" class=\"columns small-12\"><table><thead><tr><th class=\"text-center\">Game</th><th class=\"text-center\">Rating</th><th class=\"text-center\">Main</th><th class=\"text-center\">Wins</th><th class=\"text-center\">Losses</th><th class=\"text-center\">Win Rate</th></tr></thead><tbody id=\'smashFourTableBody\'>";
 		if(userData.meleeRating){
-		userInfo += "<tr><td>Melee</td><td>" + userData.meleeRating + "</td><td><img src='/img/melee/" + userData.meleeMain + ".png'\></td><td>" + userData.meleeWins + "</td><td>" + userData.meleeLosses + "</td><td>" + 100 * userData.meleeWins / (userData.meleeWins + userData.meleeLosses) + "%</td></tr>"
+			userInfo += "<tr><td>Melee</td><td>" + userData.meleeRating + "</td><td><img src='/img/melee/" + userData.meleeMain + ".png'\></td><td>" + userData.meleeWins + "</td><td>" + userData.meleeLosses + "</td><td>" + 100 * userData.meleeWins / (userData.meleeWins + userData.meleeLosses) + "%</td></tr>"
 		}
 		if(userData.pmRating){
-		userInfo += "<tr><td>Project M</td><td>" + userData.pmRating + "</td><td><img src='/img/pm/" + userData.pmMain + ".png'\></td><td>" + userData.pmWins + "</td><td>" + userData.pmLosses + "</td><td>" + 100 * userData.pmWins / (userData.pmWins + userData.pmLosses) + "%</td></tr>"
+			userInfo += "<tr><td>Project M</td><td>" + userData.pmRating + "</td><td><img src='/img/pm/" + userData.pmMain + ".png'\></td><td>" + userData.pmWins + "</td><td>" + userData.pmLosses + "</td><td>" + 100 * userData.pmWins / (userData.pmWins + userData.pmLosses) + "%</td></tr>"
 		}
 		if(userData.smashFourRating){
-		userInfo += "<tr><td>Smash 4</td><td>" + userData.smashFourRating + "</td><td><img  style=\"height:32px;width:32px;\" src=\'/img/smashFour/" + userData.smashFourMain + ".png\'\></td><td>" + userData.smashFourWins + "</td><td>" + userData.smashFourLosses + "</td><td>" + 100 * userData.smashFourWins / (userData.smashFourWins + userData.smashFourLosses) + "%</td></tr>"
+			userInfo += "<tr><td>Smash 4</td><td>" + userData.smashFourRating + "</td><td><img  style=\"height:32px;width:32px;\" src=\'/img/smashFour/" + userData.smashFourMain + ".png\'\></td><td>" + userData.smashFourWins + "</td><td>" + userData.smashFourLosses + "</td><td>" + 100 * userData.smashFourWins / (userData.smashFourWins + userData.smashFourLosses) + "%</td></tr>"
 		}
 		userInfo += "</tbody></table></div></section>";
 		document.getElementById('userInfo').innerHTML = userInfo;
@@ -57,6 +74,15 @@
 			}
 		}
 		document.getElementById('gameMatchups').innerHTML = div;
+		if(userData.matchHistory){
+			if(userData.matchHistory != [])){
+				div += "<section class=\"row\"><h2>Project M Matchups</h2><div id=\"score\" class=\"columns small-12\"><table><thead><tr><th class=\"text-center\">Against</th><th class=\"text-center\">Wins</th><th class=\"text-center\">Losses</th><th class=\"text-center\">Win Rate</th></tr></thead><tbody id=\'smashFourTableBody\'>"
+				for(var i = 0; i < userData.matchHistory.length; i++){
+					div += "<tr><td class=\"text-center\">" + userData.matchHistory[i].game + "</td><td class=\"text-center\">" + userData.matchHistory[i].playedAgainst + "</td><td class=\"text-center\">" +  userData.matchHistory[i].gamesWon + "</td><td class=\"text-center\">" + userData.matchHistory[i].gamesLost + "%</td>";
+				}
+				div += "</tbody></table></div></section><br><br><br>";
+			}
+		}
 	}
   </script>
   
@@ -111,29 +137,9 @@
 	  <div id="userInfo">
 	  </div>
 	  <div id="gameMatchups">
-      <section class="row">
-	  <h1>Melee Matchups</h1>
-    <div id="score" class="columns small-12">
-       <table>
-      <thead>
-        <tr>
-          <th class="text-center">Player</th>
-          <th class="text-center">Wins</th>
-          <th class="text-center">Losses</th>
-          <th class="text-center">Win Rate</th> 
-        </tr>
-      </thead>
-      <tbody id='smashFourTableBody'>
-        <tr>
-          <td class="text-center">####</td> 
-          <td class="text-center">####</td> 
-          <td class="text-center">####</td>  
-          <td class="text-center">####</td> 
-        </tr>
-      </tbody>
-        </table>
-    </div>
-  </section>
+	</div>
+	  <div id="matchHistory">
+
 	</div>
 
       <div class="row expanded">

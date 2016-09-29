@@ -24,7 +24,7 @@ html.no-js(lang='en', dir='ltr')
       return;
       }
       }
-      socket.emit('register', {melee:checkedBoxes[1].checked,smashFour:checkedBoxes[0].checked,pm:checkedBoxes[2].checked,name:document.getElementById('name').value,meleeMain:document.getElementById('meleeMain').value,smashFourMain:document.getElementById('smashFourMain').value,pmMain:document.getElementById('pmMain').value,password:document.getElementById("password").value});
+      socket.emit('register', {school:document.getElementById('college').value,melee:checkedBoxes[1].checked,smashFour:checkedBoxes[0].checked,pm:checkedBoxes[2].checked,name:document.getElementById('name').value,meleeMain:document.getElementById('meleeMain').value,smashFourMain:document.getElementById('smashFourMain').value,pmMain:document.getElementById('pmMain').value,password:document.getElementById("password").value});
       for(var i = 0; i < checkedBoxes.length; i++){
       checkedBoxes[i].checked = 0;
       }
@@ -99,6 +99,10 @@ html.no-js(lang='en', dir='ltr')
         label(for='name') Username:
         input#name(type='text', name='name', onkeypress='return event.keyCode!=13', placeholder="Enter the new user's name")
         br
+        label(for='college') What school do you attend?
+        select#college
+          option(value='du') Drexel University
+          option(value='up') University of Pennsylvania
         label(for='password') Password:
         input#password(type='password', name='password', onkeypress='return event.keyCode!=13', placeholder="Enter your new password")
         br
