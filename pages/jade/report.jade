@@ -11,16 +11,22 @@ html.no-js(lang='en', dir='ltr')
     link(rel='stylesheet', href='css/app.css')
     script(src='/socket.io/socket.io.js')
     script.
-      if('#{user}'){var pageData = '#{user}';}
+      var admin;
+      if('#{user}'){var currentUser = '#{user}';}
+      window.onload = function(){if('#{admin}'){admin = ('#{admin}' == 'true');}
+      if(admin){document.getElementById("admindiv").style.display="inline";}};
       var socket = io();
       function submitGame(){
+      if(document.getElementById("tournament?").value == "yes" && '#{admin}' != 'true'){alert('Please allow admins to report tournament matches'); return;}
       if(document.getElementById("playerTwo").value != "" && document.getElementById("playerOneWins").value != "" && document.getElementById("playerTwoWins").value != "" && document.getElementsByName("game")[0].value != "pickOne"){
       jsonToReturn = {};
-      jsonToReturn['playerOne'] = pageData
+      jsonToReturn['playerOne'] = currentUser
+      if(admin){jsonToReturn['playerOne'] = document.getElementById("playerOne").value;}
       jsonToReturn['playerTwo'] = document.getElementById("playerTwo").value;
       jsonToReturn['game'] = document.getElementsByName("game")[0].value
       jsonToReturn['playerOneGamesWon'] = document.getElementById("playerOneWins").value;
       jsonToReturn['playerTwoGamesWon'] = document.getElementById("playerTwoWins").value;
+      jsonToReturn['event'] = document.getElementById("eventName").value;
       socket.emit('report', jsonToReturn);
       }
       else{
@@ -53,13 +59,13 @@ html.no-js(lang='en', dir='ltr')
         .title-bar(data-responsive-toggle='example-menu', data-hide-for='medium')
           section.row.small-collapse
             .columns.small-10
-              h1 D.U. Smash Ladder
+              h1 U.C. Smash Ladder
             .columns.small-2.text-right
               button.menu-icon(type='button', data-toggle='')
               .title-bar-title
         #example-menu.top-bar
           .row.hide-for-small-only.expanded
-            h1.columns.medium-12 Drexel University Smash Ladder
+            h1.columns.medium-12 University City Smash Ladder
           #cenav.row.expanded
             ul.menu.vertical.medium-horizontal.columns.medium-12(data-responsive-menu='drilldown medium-dropdown')
               li
@@ -79,6 +85,13 @@ html.no-js(lang='en', dir='ltr')
       h2#smash4.columns.small-12 Report Your Match
       form#smashform.columns.small-12.medium-10.medium-offset-1(action='', method='', enctype='')
         fieldset
+          #admindiv(style='display:none;')
+            label(for='eventName') Event name (leave blank for challenges):
+            input#eventName(type='text', name='eventName', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's username")
+            br
+            label(for='playerOne') Player One's username:
+            input#playerOne(type='text', name='playerOne', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's username")
+            br
           label(for='playerTwo') Opponent's username:
           input#playerTwo(type='text', name='playerTwo', onkeypress='return event.keyCode!=13', placeholder="Enter Player Two's username")
           br
@@ -98,6 +111,10 @@ html.no-js(lang='en', dir='ltr')
               option(value='melee') Melee
               option(value='pm') Project M
             br
+            label(for='tournament?') Is this a tournament game?
+            select (name='tournament?)
+              option(value='no') No
+              option(value='yes') Yes
             if (typeof(user) == 'undefined')
               input(type='button', value='Submit Game', onclick='alert(\'You must be logged in to perform this action\')')
             else

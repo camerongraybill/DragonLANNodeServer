@@ -28,6 +28,7 @@ var auth = require('passport-local-authenticate');
 	var io = socketIO(httpServer);
 	var players = db.collection('players');
 	var matches = db.collection('matches');
+	var matchHistoryTotal = 1;
 //WEBSITE STARTS HERE
 	//set some app settings
 	app.use(express.static(__dirname + '/hostedItems'));
@@ -41,7 +42,7 @@ var auth = require('passport-local-authenticate');
 		
 		players.find({meleeRating: {$exists: true}}, {meleeRating:1, meleeWins:1, meleeLosses:1, meleeMain:1, displayName:1, username:1}, function(err, meleePlayers){
 			for (var i = 0; i < meleePlayers.length; i++){
-				if(meleePlayers[i]['meleeWins'] + meleePlayers[i]['meleeLosses'] <= 10){meleePlayers[i]['meleeRating'] = "Unranked"};
+				if(meleePlayers[i]['meleeWins'] + meleePlayers[i]['meleeLosses'] < 1){meleePlayers[i]['meleeRating'] = "Unranked"};
 			}
 			shuffle(meleePlayers);
 			meleePlayers.sort(compareToSortMelee);
@@ -49,7 +50,7 @@ var auth = require('passport-local-authenticate');
 		});
 		players.find({pmRating: {$exists: true}}, {pmRating:1, pmWins:1, pmLosses:1, pmMain:1, displayName:1, username:1}, function(err, pmPlayers){
 			for (var i = 0; i < pmPlayers.length; i++){
-				if(pmPlayers[i]['pmWins'] + pmPlayers[i]['pmLosses'] <= 10){pmPlayers[i]['pmRating'] = "Unranked"};
+				if(pmPlayers[i]['pmWins'] + pmPlayers[i]['pmLosses'] < 1){pmPlayers[i]['pmRating'] = "Unranked"};
 			}
 			shuffle(pmPlayers);
 			pmPlayers.sort(compareToSortPm);
@@ -57,7 +58,7 @@ var auth = require('passport-local-authenticate');
 		});
 		players.find({smashFourRating: {$exists: true}}, {smashFourRating:1, smashFourWins:1, smashFourLosses:1, smashFourMain:1, displayName:1, username:1}, function(err, smashFourPlayers){
 			for (var i = 0; i < smashFourPlayers.length; i++){
-				if(smashFourPlayers[i]['smashFourWins'] + smashFourPlayers[i]['smashFourLosses'] <= 10){smashFourPlayers[i]['smashFourRating'] = "Unranked"};
+				if(smashFourPlayers[i]['smashFourWins'] + smashFourPlayers[i]['smashFourLosses'] < 1){smashFourPlayers[i]['smashFourRating'] = "Unranked"};
 			}
 			shuffle(smashFourPlayers);
 			smashFourPlayers.sort(compareToSortSmashFour);
@@ -137,6 +138,173 @@ function compareToSortPm(a, b){
 	}
 	return 0;
 }
+function rebuildRatings(){
+	//Set Seeding
+	
+	players.update({smashFourRating: {$exists: true}}, {$set: {smashFourRating: 1200, smashFourWins: 0, smashFourLosses: 0, smashFourMatchups: {}, matchHistory: []}}, {multi: true}, function(){	
+		players.update({$or: [{username: "Vincessant"}, {username: "NTBD"}, {username: "Gonzilla"}]}, {$set: {smashFourRating: 1350}}, {multi: true});
+		players.update({$or: [{username: "Trev"}, {username: "Kaan"}, {username: "Spirunk"}]}, {$set: {smashFourRating: 1300}}, {multi: true});
+		players.update({$or: [{username: "Golf Team"}, {username: "PhantomTriforce"}, {username: "Shadinx"}]}, {$set: {smashFourRating: 1250}}, {multi: true});
+	});
+	players.update({pmRating: {$exists: true}}, {$set: {pmRating: 1200, pmWins: 0, pmLosses: 0, pmMatchups: {}, matchHistory: []}}, {multi: true});
+	players.update({meleeRating: {$exists: true}}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, matchHistory: []}}, {multi: true});
+	
+	//reapply all of the matches
+	matches.find({}, function(err, sets){
+		if(err){console.log("Error finding matches");}
+		else{
+			matchHistoryTotal = 1;
+			sets.sort(compareMatches);
+			recursiveBuildRatings(0, sets);
+		}
+	});
+}
+function compareMatches(a, b){
+	if (a.resolutionOrder == b.resolutionOrder){
+		return 0;
+	}
+	else if(a.resolutionOrder < b.resolutionOrder){
+		return 1;
+	}
+	else{
+		return -1;
+	}
+}
+function recursiveBuildRatings(i, sets){
+	if(i < sets.length){
+	reportMatch(sets[i].reporter.username, sets[i].opponent.username, sets[i].game, sets[i].event, sets[i].reporter.wins, sets[i].opponent.wins, false, function(a, b, c){recursiveBuildRatings(i+1, sets);});
+	}
+}
+function reportMatch(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, playerTwoWins, enterMatch, callback){
+	players.find({username: playerOne}, function(err1, playerOneEntry){
+		if(err1){
+			//If there is an error finding the player, log it and tell the client
+			fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'Error finding player ' + playerOne + '\n');
+			callback(0, "", 'error');
+		}
+		else if(!playerOneEntry[0]){
+			callback(0, playerOne, 'playerNotRegistered');
+		}
+		else if(!playerOneEntry[0][gamePlayed + 'Rating']){
+			//If the player is not registered for this game tell the client
+			callback(0, playerOne, 'playerNotRegistered');
+		}
+		else{
+			players.find({username: playerTwo}, function(err2, playerTwoEntry){
+				if(err2){
+					//If there is an error finding the player, log it and tell the client
+					fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'Error finding player ' + playerTwo + '\n');
+					callback(0, "", 'error');
+				}
+				else if(!playerTwoEntry[0]){
+					//If player two does not exist send the client an alert
+					callback(0, playerTwo, 'playerDoesNotExist');
+				}
+				else if(!playerTwoEntry[0][gamePlayed + 'Rating']){
+					//If the player is not registered for this game tell the client
+					callback(0, playerTwo, 'playerNotRegistered');
+				}
+				else{
+					eventName = eventName.replace(/['"]+/g, '');
+					enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, playerTwoWins, playerOneEntry, playerTwoEntry, enterMatch, callback);
+				}
+			});
+		}
+	});
+	
+}
+function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, playerTwoWins, playerOneEntry, playerTwoEntry, enterMatch, callback){
+	if(playerOneWins > playerTwoWins){
+		var playerOneWinner = 1;
+		var playerTwoWinner = 0;
+	}else if(playerOneWins < playerTwoWins){
+		var playerOneWinner = 0;
+		var playerTwoWinner = 1;
+	}
+	else{
+		var playerOneWinner = 0;
+		var playerTwoWinner = 0;
+	}
+	//Pull the game data from the initial form
+	var numGamesPlayed = playerOneWins + playerTwoWins;
+	//Pull some data from the two returned documents from the database queries
+	var playerOneRatingBefore = playerOneEntry[0][gamePlayed + 'Rating'];
+	var playerTwoRatingBefore = playerTwoEntry[0][gamePlayed + 'Rating'];
+	//Calculate the expected outcome
+	var playerOneScore = playerOneWins / (playerOneWins + playerTwoWins);
+	var playerTwoScore = playerTwoWins / (playerOneWins + playerTwoWins);
+	var playerOneAdjustedRating = Math.pow(10, playerOneRatingBefore/400);
+	var playerTwoAdjustedRating = Math.pow(10, playerTwoRatingBefore/400);
+	var playerOneExpected = playerOneAdjustedRating / (playerOneAdjustedRating + playerTwoAdjustedRating);
+	var playerTwoExpected = playerTwoAdjustedRating / (playerOneAdjustedRating + playerTwoAdjustedRating);
+	//Calculate the K Value (How much each player can win or lose from this game or set)
+	if(Math.max(playerOneWins, playerTwoWins) == 2){
+		var kVal = 16;
+	}
+	else{
+		var kVal = 32;
+	}
+	if(eventName != "Challenge"){ kVal = 2*kVal;}
+	//Add the kValue times the difference in performance to the player's rating (rating = rating + kVal*(actualScore - expectedScore)). If it is within the user's first 5 sets then make it count twice as much.
+	if(playerOneEntry[0][gamePlayed + 'Wins'] + playerOneEntry[0][gamePlayed + 'Losses'] <= 5){
+		var playerOneNewRating = playerOneRatingBefore + Math.floor(2*kVal*(playerOneScore - playerOneExpected));
+	}
+	else{
+		var playerOneNewRating = playerOneRatingBefore + Math.floor(kVal*(playerOneScore - playerOneExpected));
+	}
+	if(playerTwoEntry[0][gamePlayed + 'Wins'] + playerTwoEntry[0][gamePlayed + 'Losses'] <= 5){
+		var playerTwoNewRating = playerTwoRatingBefore + Math.floor(2*kVal*(playerTwoScore - playerTwoExpected));
+	}
+	else{
+		var playerTwoNewRating = playerTwoRatingBefore + Math.floor(kVal*(playerTwoScore - playerTwoExpected));
+	}
+	//Insert the recording of the match into the matches collection
+	matchHistoryTotal += 1;
+	if(enterMatch){matches.insert({reporter: {username: playerOne, wins: playerOneWins}, opponent: {username: playerTwo, wins: playerTwoWins}, game: gamePlayed, event: eventName, resolutionOrder: matchHistoryTotal});}
+	//Build the JSON for the update to the players collection
+	var playerOneJson = {$set:{}, $push:{}};
+	playerOneJson['$push']['matchHistory'] = {};
+	playerOneJson['$push']['matchHistory']['game'] = gamePlayed;
+	playerOneJson['$push']['matchHistory']['ratingChange'] =  playerOneNewRating - playerOneRatingBefore;
+	playerOneJson['$push']['matchHistory']['playedAgainst'] = playerTwo;
+	playerOneJson['$push']['matchHistory']['gamesWon'] = playerOneWins;
+	playerOneJson['$push']['matchHistory']['gamesLost'] = playerTwoWins;
+	playerOneJson['$push']['matchHistory']['event'] = eventName;
+	if(!playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo]){
+		playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo] = {wins:0,losses:0};
+	}
+	playerOneJson['$set'][gamePlayed + 'Matchups.' + playerTwo + ".wins"] = playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo]['wins'] + playerOneWinner;
+	playerOneJson['$set'][gamePlayed + 'Matchups.' + playerTwo + ".losses"] = playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo]['losses'] + playerTwoWinner;
+	playerOneJson['$set'][gamePlayed + 'Rating'] =  playerOneNewRating;
+	playerOneJson['$set'][gamePlayed + 'Wins'] = playerOneEntry[0][gamePlayed + 'Wins'] + playerOneWinner;
+	playerOneJson['$set'][gamePlayed + 'Losses'] = playerOneEntry[0][gamePlayed + 'Losses'] + playerTwoWinner;
+	var playerTwoJson = {$set:{}, $push:{}};
+	playerTwoJson['$push']['matchHistory'] = {};
+	playerTwoJson['$push']['matchHistory']['game'] = gamePlayed;
+	playerTwoJson['$push']['matchHistory']['ratingChange'] =  playerTwoNewRating - playerTwoRatingBefore;
+	playerTwoJson['$push']['matchHistory']['playedAgainst'] = playerOne;
+	playerTwoJson['$push']['matchHistory']['gamesWon'] = playerTwoWins;
+	playerTwoJson['$push']['matchHistory']['gamesLost'] = playerOneWins;
+	playerTwoJson['$push']['matchHistory']['event'] = eventName;
+	if(!playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]){
+		playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne] = {wins:0,losses:0};
+	}
+	playerTwoJson['$set'][gamePlayed + 'Matchups.' + playerOne + ".wins"] = playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]['wins'] + playerOneWinner;
+	playerTwoJson['$set'][gamePlayed + 'Matchups.' + playerOne + ".losses"] = playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]['losses'] + playerTwoWinner;
+	playerTwoJson['$set'][gamePlayed + 'Rating'] = playerTwoNewRating;
+	playerTwoJson['$set'][gamePlayed + 'Wins'] = playerTwoEntry[0][gamePlayed + 'Wins'] + playerTwoWinner;
+	playerTwoJson['$set'][gamePlayed + 'Losses'] = playerTwoEntry[0][gamePlayed + 'Losses'] + playerOneWinner;
+	fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'Match reported between ' + playerOne + ' and ' + playerTwo + '\n');
+	//Send the update queries to the DB
+	players.update({username: playerOne}, playerOneJson);
+	players.update({username: playerTwo}, playerTwoJson);
+	//Report success to the client
+	buildScoreboard(function(data){
+		io.emit('refreshScoreboard', {reason: 'matchReported', scoreboardJson: data});
+	});
+	callback(1, "", "success");
+	
+}
 	//Passport authentication and login
 	passport.use(new Strategy(function(uname, password, callback){
 		players.find({username: uname}, function(err, docs){
@@ -166,7 +334,7 @@ function compareToSortPm(a, b){
 	//HTTP GET Endpoints
 	app.get('/', function(req, res){
 		if(req.user){
-		res.render(__dirname + '/pages/jade/index.jade', {user: req.user['username']});
+		res.render(__dirname + '/pages/jade/index.jade', {user: req.user['username'], admin: req.user['admin']});
 		}
 		else{
 			res.render(__dirname + '/pages/jade/index.jade', {});
@@ -174,7 +342,7 @@ function compareToSortPm(a, b){
 	});
 	app.get('/register', function(req, res){
 		if(req.user){
-		res.render(__dirname + '/pages/jade/register.jade', {user: req.user['username']});
+		res.render(__dirname + '/pages/jade/register.jade', {user: req.user['username'], admin: req.user['admin']});
 		}
 		else{
 			res.render(__dirname + '/pages/jade/register.jade', {});
@@ -182,7 +350,7 @@ function compareToSortPm(a, b){
 	});
 	app.get('/report', function(req, res){
 		if(req.user){
-		res.render(__dirname + '/pages/jade/report.jade', {user: req.user['username']});
+		res.render(__dirname + '/pages/jade/report.jade', {user: req.user['username'], admin: req.user['admin']});
 		}
 		else{
 			res.render(__dirname + '/pages/jade/report.jade', {});
@@ -190,27 +358,35 @@ function compareToSortPm(a, b){
 	});
 	app.get('/login', function(req, res){
 		if(req.user){
-		res.render(__dirname + '/pages/jade/login.jade', {user: req.user['username']});
+		res.render(__dirname + '/pages/jade/login.jade', {user: req.user['username'], admin: req.user['admin']});
 		}
 		else{
 			res.render(__dirname + '/pages/jade/login.jade', {});
 		}
 	});
+	app.get('/rebuild', function(req, res){
+		if(req.user && req.user.admin){
+			rebuildRatings();
+		}
+		res.redirect('/');
+	});
 	app.get('/logout', function(req, res){
 		req.logout();
-		res.redirect('back');
+		res.redirect('/');
 	});
 	app.get('/user/:username', function(req, res){
 		var uname = req.params.username;
-		players.find({username: uname}, {password:0, _id:0, username: 0}, function(err, docs){
+		players.find({username: uname}, {password:0, _id:0}, function(err, docs){
 			if(err || !docs[0]){res.render(__dirname + '/pages/jade/unf.jade', {user: uname});}
 			else{
 				if(req.user){
+					console.log(JSON.stringify(docs[0]));
 					if(req.user['username'] == uname){res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), user: req.user['username'], edit: true});}
-					res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), user: req.user['username'], edit: false});
+					else{res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), user: req.user['username'], edit: false});}
 				}
 				else{
-					res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), edit: false});;
+					console.log(JSON.stringify(docs[0]));
+					res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), edit: false});
 				}
 			}
 		});
@@ -290,103 +466,11 @@ function compareToSortPm(a, b){
 			var playerOne = data['playerOne'];
 			var playerTwo = data['playerTwo'];
 			var gamePlayed = data['game'];
-			players.find({username: playerOne}, function(err1, playerOneEntry){
-				if(err1){
-					//If there is an error finding the player, log it and tell the client
-					fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'Error finding player ' + playerOne + '\n');
-					socket.emit('report', {status: 0, reason: 'error'});
-				}
-				else if(!playerOneEntry[0][gamePlayed + 'Rating']){
-					//If the player is not registered for this game tell the client
-					socket.emit('report', {status: 0, reason: 'playerNotRegistered', playerName: playerOne});
-				}
-				else{
-					players.find({username: playerTwo}, function(err2, playerTwoEntry){
-						if(err2){
-							//If there is an error finding the player, log it and tell the client
-							fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'Error finding player ' + playerTwo + '\n');
-							socket.emit('report', {status: 0, reason: 'error'});
-						}
-						else if(!playerTwoEntry[0]){
-							//If player two does not exist send the client an alert
-							socket.emit('report', {status: 0, reason: 'playerDoesNotExist', playerName: playerTwo});
-						}
-						else if(!playerTwoEntry[0][gamePlayed + 'Rating']){
-							//If the player is not registered for this game tell the client
-							socket.emit('report', {status: 0, reason: 'playerNotRegistered', playerName: playerTwo});
-						}
-						else{
-							//Pull the game data from the initial form
-							var playerOneGamesWon = parseInt(data['playerOneGamesWon']);
-							var playerTwoGamesWon = parseInt(data['playerTwoGamesWon']);
-							var numGamesPlayed = playerOneGamesWon + playerTwoGamesWon;
-							//Pull some data from the two returned documents from the database queries
-							var playerOneRatingBefore = playerOneEntry[0][gamePlayed + 'Rating'];
-							var playerTwoRatingBefore = playerTwoEntry[0][gamePlayed + 'Rating'];
-							//Calculate the expected outcome
-							var playerOneScore = playerOneGamesWon / numGamesPlayed;
-							var playerTwoScore = playerTwoGamesWon / numGamesPlayed;
-							var playerOneExpected = 1 / (1 + Math.pow(10, ((playerTwoRatingBefore - playerOneRatingBefore)/400)));
-							var playerTwoExpected = 1 / (1 + Math.pow(10, ((playerOneRatingBefore - playerTwoRatingBefore)/400)));
-							//Calculate the K Value (How much each player can win or lose from this game or set)
-							var kVal = (Math.log(numGamesPlayed + 1) / Math.log(1.1))*4;
-							//Add the kValue times the difference in performance to the player's rating (rating = rating + kVal*(actualScore - expectedScore)). If it is within the user's first 10 games then make it count twice as much.
-							if(playerOneEntry[0][gamePlayed + 'Wins'] + playerOneEntry[0][gamePlayed + 'Losses'] <= 10){
-								var playerOneNewRating = playerOneRatingBefore + Math.floor(2*kVal*(playerOneScore - playerOneExpected));
-							}
-							else{
-								var playerOneNewRating = playerOneRatingBefore + Math.floor(kVal*(playerOneScore - playerOneExpected));
-							}
-							if(playerTwoEntry[0][gamePlayed + 'Wins'] + playerTwoEntry[0][gamePlayed + 'Losses'] <= 10){
-								var playerTwoNewRating = playerTwoRatingBefore + Math.floor(2*kVal*(playerTwoScore - playerTwoExpected));
-							}
-							else{
-								var playerTwoNewRating = playerTwoRatingBefore + Math.floor(kVal*(playerTwoScore - playerTwoExpected));
-							}
-							//Insert the recording of the match into the matches collection
-							matches.insert({reporter: {username: playerOne, ratingBefore: playerOneRatingBefore, ratingAfter: playerOneNewRating}, opponent: {username: playerTwo, ratingBefore: playerTwoRatingBefore, ratingAfter: playerTwoNewRating}, game: gamePlayed});
-							//Build the JSON for the update to the players collection
-							var playerOneJson = {$set:{}, $push:{}};
-							playerOneJson['$push']['matchHistory'] = {};
-							playerOneJson['$push']['matchHistory']['game'] = gamePlayed;
-							playerOneJson['$push']['matchHistory']['playedAgainst'] = playerTwo;
-							playerOneJson['$push']['matchHistory']['gamesWon'] = playerOneGamesWon;
-							playerOneJson['$push']['matchHistory']['gamesLost'] = playerTwoGamesWon;
-							if(!playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo]){
-								playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo] = {wins:0,losses:0};
-							}
-							playerOneJson['$set'][gamePlayed + 'Matchups.' + playerTwo + ".wins"] = playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo]['wins'] + playerOneGamesWon;
-							playerOneJson['$set'][gamePlayed + 'Matchups.' + playerTwo + ".losses"] = playerOneEntry[0][gamePlayed + 'Matchups'][playerTwo]['losses'] + playerTwoGamesWon;
-							playerOneJson['$set'][gamePlayed + 'Rating'] =  playerOneNewRating;
-							playerOneJson['$set'][gamePlayed + 'Wins'] = playerOneEntry[0][gamePlayed + 'Wins'] + playerOneGamesWon;
-							playerOneJson['$set'][gamePlayed + 'Losses'] = playerOneEntry[0][gamePlayed + 'Losses'] + playerTwoGamesWon;
-							var playerTwoJson = {$set:{}, $push:{}};
-							playerTwoJson['$push']['matchHistory'] = {};
-							playerTwoJson['$push']['matchHistory']['game'] = gamePlayed;
-							playerTwoJson['$push']['matchHistory']['playedAgainst'] = playerOne;
-							playerTwoJson['$push']['matchHistory']['gamesWon'] = playerTwoGamesWon;
-							playerTwoJson['$push']['matchHistory']['gamesLost'] = playerOneGamesWon;
-							if(!playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]){
-								playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne] = {wins:0,losses:0};
-							}
-							playerTwoJson['$set'][gamePlayed + 'Matchups.' + playerOne + ".wins"] = playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]['wins'] + playerTwoGamesWon;
-							playerTwoJson['$set'][gamePlayed + 'Matchups.' + playerOne + ".losses"] = playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]['losses'] + playerOneGamesWon;
-							playerTwoJson['$set'][gamePlayed + 'Rating'] = playerTwoNewRating;
-							playerTwoJson['$set'][gamePlayed + 'Wins'] = playerTwoEntry[0][gamePlayed + 'Wins'] + playerTwoGamesWon;
-							playerTwoJson['$set'][gamePlayed + 'Losses'] = playerTwoEntry[0][gamePlayed + 'Losses'] + playerOneGamesWon;
-							fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' + 'Match reported between ' + playerOne + ' and ' + playerTwo + '\n');
-							//Send the update queries to the DB
-							players.update({username: playerOne}, playerOneJson);
-							players.update({username: playerTwo}, playerTwoJson);
-							//Report success to the client
-							socket.emit('report', {status: 1, reason: 'success'});
-							buildScoreboard(function(data){
-								io.emit('refreshScoreboard', {reason: 'matchReported', scoreboardJson: data});
-							});
-						}
-					});
-				}
-			});
+			var eventName = data['event'];
+			var playerOneGamesWon = parseInt(data['playerOneGamesWon']);
+			var playerTwoGamesWon = parseInt(data['playerTwoGamesWon']);
+			if(!data['event'] || data['event'] == ""){eventName = "Challenge";}
+			reportMatch(playerOne, playerTwo, gamePlayed, eventName, playerOneGamesWon, playerTwoGamesWon, true, function(bool, two, three){socket.emit('report', {status: bool, reason: three, playerName: two});});
 		});
 	});
 	
@@ -461,4 +545,5 @@ function compareToSortPm(a, b){
 
 	// log the bot in
 	bot.login(token);
+	rebuildRatings();
 

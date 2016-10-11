@@ -372,7 +372,9 @@ i{
     text-align:center;
 }
 
-
+#newform{
+    float:none;
+}
 
 
 

@@ -147,7 +147,27 @@
         <img src="/img/S@M.png" alt="logo thing">
       </div>
     </div>
+      <form id="newform" class="columns small-12 medium-8 medium-offset-2" action="" method="" enctype="">
+        <fieldset>
+          <label for="name">GamerTag:</label>
+          <input type="text" id="name" name="name" onkeypress="return event.keyCode!=13" placeholder="Enter your new tag" />
+          <input type="button" value="Submit change" onClick="submitUser()" />
+		</fieldset>
+	  </form>
 
+	  <div id="reg" class="row expanded">
+        <h2 class="columns small-12">Change Your Password</h2>
+      </div>
+
+      <form id="newform" class="columns small-12 medium-8 medium-offset-2" action="" method="" enctype="">
+        <fieldset>
+          <label for="name">Password</label>
+          <input type="text" id="name" name="name" onkeypress="return event.keyCode!=13" placeholder="Enter your old password" />
+          <input type="text" id="name" name="name" onkeypress="return event.keyCode!=13" placeholder="Enter your new password" />
+          <input type="text" id="name" name="name" onkeypress="return event.keyCode!=13" placeholder="Enter your new password again" />
+          <input type="button" value="Submit change" onClick="submitUser()" />
+		</fieldset>
+	  </form>
     <div class="row expanded">
       <a href="https://www.facebook.com/groups/dragoonsSMASH/"><i class="fi-social-facebook columns small-12"></i></a>
     </div>
