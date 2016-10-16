@@ -42,7 +42,7 @@ var auth = require('passport-local-authenticate');
 		
 		players.find({meleeRating: {$exists: true}}, {meleeRating:1, meleeWins:1, meleeLosses:1, meleeMain:1, displayName:1, username:1}, function(err, meleePlayers){
 			for (var i = 0; i < meleePlayers.length; i++){
-				if(meleePlayers[i]['meleeWins'] + meleePlayers[i]['meleeLosses'] < 1){meleePlayers[i]['meleeRating'] = "Unranked"};
+				if(meleePlayers[i]['meleeWins'] + meleePlayers[i]['meleeLosses'] < 2){meleePlayers[i]['meleeRating'] = "Unranked"};
 			}
 			shuffle(meleePlayers);
 			meleePlayers.sort(compareToSortMelee);
@@ -50,7 +50,7 @@ var auth = require('passport-local-authenticate');
 		});
 		players.find({pmRating: {$exists: true}}, {pmRating:1, pmWins:1, pmLosses:1, pmMain:1, displayName:1, username:1}, function(err, pmPlayers){
 			for (var i = 0; i < pmPlayers.length; i++){
-				if(pmPlayers[i]['pmWins'] + pmPlayers[i]['pmLosses'] < 1){pmPlayers[i]['pmRating'] = "Unranked"};
+				if(pmPlayers[i]['pmWins'] + pmPlayers[i]['pmLosses'] < 2){pmPlayers[i]['pmRating'] = "Unranked"};
 			}
 			shuffle(pmPlayers);
 			pmPlayers.sort(compareToSortPm);
@@ -58,7 +58,7 @@ var auth = require('passport-local-authenticate');
 		});
 		players.find({smashFourRating: {$exists: true}}, {smashFourRating:1, smashFourWins:1, smashFourLosses:1, smashFourMain:1, displayName:1, username:1}, function(err, smashFourPlayers){
 			for (var i = 0; i < smashFourPlayers.length; i++){
-				if(smashFourPlayers[i]['smashFourWins'] + smashFourPlayers[i]['smashFourLosses'] < 1){smashFourPlayers[i]['smashFourRating'] = "Unranked"};
+				if(smashFourPlayers[i]['smashFourWins'] + smashFourPlayers[i]['smashFourLosses'] < 2){smashFourPlayers[i]['smashFourRating'] = "Unranked"};
 			}
 			shuffle(smashFourPlayers);
 			smashFourPlayers.sort(compareToSortSmashFour);
@@ -142,9 +142,9 @@ function rebuildRatings(){
 	//Set Seeding
 	
 	players.update({smashFourRating: {$exists: true}}, {$set: {smashFourRating: 1200, smashFourWins: 0, smashFourLosses: 0, smashFourMatchups: {}, matchHistory: []}}, {multi: true}, function(){	
-		players.update({$or: [{username: "Vincessant"}, {username: "NTBD"}, {username: "Gonzilla"}]}, {$set: {smashFourRating: 1350}}, {multi: true});
-		players.update({$or: [{username: "Trev"}, {username: "Kaan"}, {username: "Spirunk"}]}, {$set: {smashFourRating: 1300}}, {multi: true});
-		players.update({$or: [{username: "Golf Team"}, {username: "PhantomTriforce"}, {username: "Shadinx"}]}, {$set: {smashFourRating: 1250}}, {multi: true});
+		players.update({$or: [{username: "Vincessant"}, {username: "NTBD"}, {username: "Gonzilla"}]}, {$set: {smashFourRating: 1275}}, {multi: true});
+		players.update({$or: [{username: "Trev"}, {username: "Kaan"}, {username: "Spirunk"}]}, {$set: {smashFourRating: 1250}}, {multi: true});
+		players.update({$or: [{username: "Golf Team"}, {username: "PhantomTriforce"}, {username: "Shadinx"}]}, {$set: {smashFourRating: 1225}}, {multi: true});
 	});
 	players.update({pmRating: {$exists: true}}, {$set: {pmRating: 1200, pmWins: 0, pmLosses: 0, pmMatchups: {}, matchHistory: []}}, {multi: true});
 	players.update({meleeRating: {$exists: true}}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, matchHistory: []}}, {multi: true});
@@ -246,18 +246,19 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 	}
 	if(eventName != "Challenge"){ kVal = 2*kVal;}
 	//Add the kValue times the difference in performance to the player's rating (rating = rating + kVal*(actualScore - expectedScore)). If it is within the user's first 5 sets then make it count twice as much.
-	if(playerOneEntry[0][gamePlayed + 'Wins'] + playerOneEntry[0][gamePlayed + 'Losses'] <= 5){
-		var playerOneNewRating = playerOneRatingBefore + Math.floor(2*kVal*(playerOneScore - playerOneExpected));
-	}
-	else{
+	//if(playerTwoEntry[0][gamePlayed + 'Wins'] + playerTwoEntry[0][gamePlayed + 'Losses'] <= 5){
+	//	var playerOneNewRating = playerOneRatingBefore + Math.floor(2*kVal*(playerOneScore - playerOneExpected));
+	//}
+	//else{
 		var playerOneNewRating = playerOneRatingBefore + Math.floor(kVal*(playerOneScore - playerOneExpected));
-	}
-	if(playerTwoEntry[0][gamePlayed + 'Wins'] + playerTwoEntry[0][gamePlayed + 'Losses'] <= 5){
-		var playerTwoNewRating = playerTwoRatingBefore + Math.floor(2*kVal*(playerTwoScore - playerTwoExpected));
-	}
-	else{
+	//}
+	
+	//if(playerTwoEntry[0][gamePlayed + 'Wins'] + playerTwoEntry[0][gamePlayed + 'Losses'] <= 5){
+	//	var playerTwoNewRating = playerTwoRatingBefore + Math.floor(2*kVal*(playerTwoScore - playerTwoExpected));
+	//}
+	//else{
 		var playerTwoNewRating = playerTwoRatingBefore + Math.floor(kVal*(playerTwoScore - playerTwoExpected));
-	}
+	//}
 	//Insert the recording of the match into the matches collection
 	matchHistoryTotal += 1;
 	if(enterMatch){matches.insert({reporter: {username: playerOne, wins: playerOneWins}, opponent: {username: playerTwo, wins: playerTwoWins}, game: gamePlayed, event: eventName, resolutionOrder: matchHistoryTotal});}
@@ -289,8 +290,8 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 	if(!playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]){
 		playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne] = {wins:0,losses:0};
 	}
-	playerTwoJson['$set'][gamePlayed + 'Matchups.' + playerOne + ".wins"] = playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]['wins'] + playerOneWinner;
-	playerTwoJson['$set'][gamePlayed + 'Matchups.' + playerOne + ".losses"] = playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]['losses'] + playerTwoWinner;
+	playerTwoJson['$set'][gamePlayed + 'Matchups.' + playerOne + ".wins"] = playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]['wins'] + playerTwoWinner;
+	playerTwoJson['$set'][gamePlayed + 'Matchups.' + playerOne + ".losses"] = playerTwoEntry[0][gamePlayed + 'Matchups'][playerOne]['losses'] + playerOneWinner;
 	playerTwoJson['$set'][gamePlayed + 'Rating'] = playerTwoNewRating;
 	playerTwoJson['$set'][gamePlayed + 'Wins'] = playerTwoEntry[0][gamePlayed + 'Wins'] + playerTwoWinner;
 	playerTwoJson['$set'][gamePlayed + 'Losses'] = playerTwoEntry[0][gamePlayed + 'Losses'] + playerOneWinner;

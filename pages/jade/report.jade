@@ -17,7 +17,7 @@ html.no-js(lang='en', dir='ltr')
       if(admin){document.getElementById("admindiv").style.display="inline";}};
       var socket = io();
       function submitGame(){
-      if(document.getElementById("tournament?").value == "yes" && '#{admin}' != 'true'){alert('Please allow admins to report tournament matches'); return;}
+      if(document.getElementsByName("tournament?")[0].value == "yes" && '#{admin}' != 'true'){alert('Please allow admins to report tournament matches'); return;}
       if(document.getElementById("playerTwo").value != "" && document.getElementById("playerOneWins").value != "" && document.getElementById("playerTwoWins").value != "" && document.getElementsByName("game")[0].value != "pickOne"){
       jsonToReturn = {};
       jsonToReturn['playerOne'] = currentUser
@@ -36,7 +36,6 @@ html.no-js(lang='en', dir='ltr')
       socket.on('report', function(data){
       if(data['status']){
       alert("Match reported successfully");
-      window.location.replace("/");
       }
       else if(data['reason'] == 'playerDoesNotExist'){
       alert("Player " + data['playerName'] + " does not exist");
@@ -112,9 +111,10 @@ html.no-js(lang='en', dir='ltr')
               option(value='pm') Project M
             br
             label(for='tournament?') Is this a tournament game?
-            select (name='tournament?)
+            select(name='tournament?')
               option(value='no') No
               option(value='yes') Yes
+            br
             if (typeof(user) == 'undefined')
               input(type='button', value='Submit Game', onclick='alert(\'You must be logged in to perform this action\')')
             else
