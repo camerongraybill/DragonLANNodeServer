@@ -40,15 +40,15 @@ var auth = require('passport-local-authenticate');
 	//Utility stuff
 	function buildScoreboard(callback){
 		
-		players.find({meleeRating: {$exists: true}}, {meleeRating:1, meleeWins:1, meleeLosses:1, meleeMain:1, displayName:1, username:1}, function(err, meleePlayers){
+		players.find({$and: [{hidden: false}, {meleeRating: {$exists: true}}]}, {meleeRating:1, meleeWins:1, meleeLosses:1, meleeMain:1, displayName:1, username:1}, function(err, meleePlayers){
 			for (var i = 0; i < meleePlayers.length; i++){
-				if(meleePlayers[i]['meleeWins'] + meleePlayers[i]['meleeLosses'] < 2){meleePlayers[i]['meleeRating'] = "Unranked"};
+				if(meleePlayers[i]['meleeWins'] + meleePlayers[i]['meleeLosses'] < 1){meleePlayers[i]['meleeRating'] = "Unranked"};
 			}
 			shuffle(meleePlayers);
 			meleePlayers.sort(compareToSortMelee);
 			callback({game: 'melee', data: meleePlayers});
 		});
-		players.find({pmRating: {$exists: true}}, {pmRating:1, pmWins:1, pmLosses:1, pmMain:1, displayName:1, username:1}, function(err, pmPlayers){
+		players.find({$and: [{hidden: false}, {pmRating: {$exists: true}}]}, {pmRating:1, pmWins:1, pmLosses:1, pmMain:1, displayName:1, username:1}, function(err, pmPlayers){
 			for (var i = 0; i < pmPlayers.length; i++){
 				if(pmPlayers[i]['pmWins'] + pmPlayers[i]['pmLosses'] < 2){pmPlayers[i]['pmRating'] = "Unranked"};
 			}
@@ -56,7 +56,7 @@ var auth = require('passport-local-authenticate');
 			pmPlayers.sort(compareToSortPm);
 			callback({game: 'pm', data: pmPlayers});
 		});
-		players.find({smashFourRating: {$exists: true}}, {smashFourRating:1, smashFourWins:1, smashFourLosses:1, smashFourMain:1, displayName:1, username:1}, function(err, smashFourPlayers){
+		players.find({$and: [{hidden: false}, {smashFourRating: {$exists: true}}]}, {smashFourRating:1, smashFourWins:1, smashFourLosses:1, smashFourMain:1, displayName:1, username:1}, function(err, smashFourPlayers){
 			for (var i = 0; i < smashFourPlayers.length; i++){
 				if(smashFourPlayers[i]['smashFourWins'] + smashFourPlayers[i]['smashFourLosses'] < 2){smashFourPlayers[i]['smashFourRating'] = "Unranked"};
 			}
@@ -65,6 +65,7 @@ var auth = require('passport-local-authenticate');
 			callback({game: 'smashFour', data: smashFourPlayers});
 		});
 	}
+	
 function shuffle(array) {
     let counter = array.length;
 
@@ -142,32 +143,48 @@ function rebuildRatings(){
 	//Set Seeding
 	
 	players.update({smashFourRating: {$exists: true}}, {$set: {smashFourRating: 1200, smashFourWins: 0, smashFourLosses: 0, smashFourMatchups: {}, matchHistory: []}}, {multi: true}, function(){	
-		players.update({$or: [{username: "Vincessant"}, {username: "NTBD"}, {username: "Gonzilla"}]}, {$set: {smashFourRating: 1275}}, {multi: true});
-		players.update({$or: [{username: "Trev"}, {username: "Kaan"}, {username: "Spirunk"}]}, {$set: {smashFourRating: 1250}}, {multi: true});
-		players.update({$or: [{username: "Golf Team"}, {username: "PhantomTriforce"}, {username: "Shadinx"}]}, {$set: {smashFourRating: 1225}}, {multi: true});
+		players.update({username: {$in: ["Vincessant", "NTBD", "Gonzilla"]}}, {$set: {smashFourRating: 1275}}, {multi: true});
+		players.update({username: {$in: ["Trev", "Kaan", "Spirunk"]}}, {$set: {smashFourRating: 1250}}, {multi: true});
+		players.update({username: {$in: ["Golf Team", "PhantomTriforce", "Shadinx"]}}, {$set: {smashFourRating: 1225}}, {multi: true});
 	});
-	players.update({pmRating: {$exists: true}}, {$set: {pmRating: 1200, pmWins: 0, pmLosses: 0, pmMatchups: {}, matchHistory: []}}, {multi: true});
-	players.update({meleeRating: {$exists: true}}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, matchHistory: []}}, {multi: true});
+	players.update({pmRating: {$exists: true}}, {$set: {pmRating: 1200, pmWins: 0, pmLosses: 0, pmMatchups: {}, matchHistory: []}}, {multi: true}, function(){
+		
+	});
+	players.update({meleeRating: {$exists: true}}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, matchHistory: []}}, {multi: true}, function(){
+		players.update({username: {$in: ["Vincessant", "Basic Stitch", "Seaghost", "RAF", "1BM", "Greg Glaze"]}}, {$set: {meleeRating: 1250}}, {multi: true});
+	});
 	
 	//reapply all of the matches
-	matches.find({}, function(err, sets){
-		if(err){console.log("Error finding matches");}
-		else{
-			matchHistoryTotal = 1;
-			sets.sort(compareMatches);
-			recursiveBuildRatings(0, sets);
-		}
+	players.find({hidden: true}, {username: 1}, function(err, hiddenPlayers){
+		hiddenList = toListOfAttributes(hiddenPlayers, "username");
+		matches.find({$and: [{"reporter.username": {$nin: hiddenList}}, {"opponent.username": {$nin: hiddenList}}]}, function(err, sets){
+			if(err){console.log("Error finding matches");}
+			else{
+				matchHistoryTotal = 1;
+				sets.sort(compareMatches);
+				recursiveBuildRatings(0, sets);
+			}
+		});
 	});
 }
+
+function toListOfAttributes(items, attribute){
+	toReturn = [];
+	for (var i = 0; i < items.length; i++){
+		toReturn.push(items[i][attribute]);
+	}
+	return toReturn;
+}
+
 function compareMatches(a, b){
 	if (a.resolutionOrder == b.resolutionOrder){
 		return 0;
 	}
 	else if(a.resolutionOrder < b.resolutionOrder){
-		return 1;
+		return -1;
 	}
 	else{
-		return -1;
+		return 1;
 	}
 }
 function recursiveBuildRatings(i, sets){
@@ -231,8 +248,10 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 	var playerOneRatingBefore = playerOneEntry[0][gamePlayed + 'Rating'];
 	var playerTwoRatingBefore = playerTwoEntry[0][gamePlayed + 'Rating'];
 	//Calculate the expected outcome
-	var playerOneScore = playerOneWins / (playerOneWins + playerTwoWins);
-	var playerTwoScore = playerTwoWins / (playerOneWins + playerTwoWins);
+	//var playerOneScore = playerOneWins / (playerOneWins + playerTwoWins);
+	//var playerTwoScore = playerTwoWins / (playerOneWins + playerTwoWins);
+	var playerOneScore = playerOneWinner;
+	var playerTwoScore = playerTwoWinner;
 	var playerOneAdjustedRating = Math.pow(10, playerOneRatingBefore/400);
 	var playerTwoAdjustedRating = Math.pow(10, playerTwoRatingBefore/400);
 	var playerOneExpected = playerOneAdjustedRating / (playerOneAdjustedRating + playerTwoAdjustedRating);
@@ -242,7 +261,7 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 		var kVal = 16;
 	}
 	else{
-		var kVal = 32;
+		var kVal = 24;
 	}
 	if(eventName != "Challenge"){ kVal = 2*kVal;}
 	//Add the kValue times the difference in performance to the player's rating (rating = rating + kVal*(actualScore - expectedScore)). If it is within the user's first 5 sets then make it count twice as much.
@@ -257,7 +276,7 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 	//	var playerTwoNewRating = playerTwoRatingBefore + Math.floor(2*kVal*(playerTwoScore - playerTwoExpected));
 	//}
 	//else{
-		var playerTwoNewRating = playerTwoRatingBefore + Math.floor(kVal*(playerTwoScore - playerTwoExpected));
+		var playerTwoNewRating = playerTwoRatingBefore + Math.floor(kVal*(playerTwoScore + (.1*playerTwoWins) - playerTwoExpected));
 	//}
 	//Insert the recording of the match into the matches collection
 	matchHistoryTotal += 1;
@@ -381,12 +400,10 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 			if(err || !docs[0]){res.render(__dirname + '/pages/jade/unf.jade', {user: uname});}
 			else{
 				if(req.user){
-					console.log(JSON.stringify(docs[0]));
 					if(req.user['username'] == uname){res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), user: req.user['username'], edit: true});}
 					else{res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), user: req.user['username'], edit: false});}
 				}
 				else{
-					console.log(JSON.stringify(docs[0]));
 					res.render(__dirname + '/pages/jade/profile.jade', {userJson: JSON.stringify(docs[0]), edit: false});
 				}
 			}
@@ -444,7 +461,7 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 				else{
 					auth.hash(pass, function(err, hashed){
 						if(err){socket.emit('register',{status:0, reason: 'error hashing'}); return;} //if there is an error hashing the password tell the page to alert
-						players.insert({username: newName, displayName: newName, password: hashed, matchHistory: [], school: college, admin:false}, function(){
+						players.insert({username: newName, displayName: newName, password: hashed, matchHistory: [], school: college, admin:false, hidden:false}, function(){
 						fs.writeFileSync(eloLogfile, '[' + moment().format('YYYY-MM-DD HH:mm:ss Z') + '] ' +'User ' + newName + ' created\n'); //Log the creation of a new user
 						//Add melee, smash 4 and/or pm to the user
 						if(melee){players.update({username:newName}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, meleeMain: data['meleeMain']}});}
