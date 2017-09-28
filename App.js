@@ -18,7 +18,9 @@ var auth = require('passport-local-authenticate');
 	//For Discord Bot
 	var discordLogfile = fs.openSync(__dirname + '/logs/DragonLANBot.log', 'a', 0666);
 	var bot = new Discord.Client();
-	var token = 'MjIyNTIwNDEzNTgwODIwNDgy.Cq-6PQ.gUV-gybGKOFH4Z_SYm5Drf9EOBo';
+	var token = require("./auth.json").token;
+	var badWords = ["nigger", "nigg3r", "niggers", "niggerz", "honky", "coon", "cunt", "dyke", "dykes", "fag", "f@g", "fags", "fagz", "fagg", "faggit", "faggot", "fagot", "fagott", "faggots", "twat", "twats", "beaner", "bimbo", "chink", "coon", "dagos", "gringo", "guido", "homo", "h0mo", "hom0", "h0m0", "kkk", "klan", "kraut", "kike", "kyke", "lez", "lezbo", "lezzie", "lezzies", "lezzy", "nazi", "n@zi", "niggle", "niglet", "spic", "spick", "spik", "spiks", "wigger"];
+	const badWordsRe = new RegExp(" *(" + badWords.join("|") + ")(?: |\\?|!|\\.|,|$)+");
 	//For Website
 	var _favicon = favicon(__dirname + '/hostedItems/favicon.ico');
 	var eloLogfile = fs.openSync(__dirname + '/logs/SmashElo.log', 'a', 0666);
@@ -143,19 +145,19 @@ function rebuildRatings(){
 	//Set Seeding
 	
 	players.update({smashFourRating: {$exists: true}}, {$set: {smashFourRating: 1200, smashFourWins: 0, smashFourLosses: 0, smashFourMatchups: {}, matchHistory: []}}, {multi: true}, function(){	
-		players.update({username: {$in: ["Vincessant", "NTBD", "Gonzilla"]}}, {$set: {smashFourRating: 1275}}, {multi: true});
-		players.update({username: {$in: ["Trev", "Kaan", "Spirunk"]}}, {$set: {smashFourRating: 1250}}, {multi: true});
-		players.update({username: {$in: ["Golf Team", "PhantomTriforce", "Shadinx"]}}, {$set: {smashFourRating: 1225}}, {multi: true});
+	//	players.update({username: {$in: ["Vincessant", "NTBD", "Gonzilla"]}}, {$set: {smashFourRating: 1275}}, {multi: true});
+	//	players.update({username: {$in: ["Trev", "Kaan", "Spirunk"]}}, {$set: {smashFourRating: 1250}}, {multi: true});
+	//	players.update({username: {$in: ["Golf Team", "PhantomTriforce", "Shadinx"]}}, {$set: {smashFourRating: 1225}}, {multi: true});
 	});
 	players.update({pmRating: {$exists: true}}, {$set: {pmRating: 1200, pmWins: 0, pmLosses: 0, pmMatchups: {}, matchHistory: []}}, {multi: true}, function(){
 		
 	});
 	players.update({meleeRating: {$exists: true}}, {$set: {meleeRating: 1200, meleeWins: 0, meleeLosses: 0, meleeMatchups: {}, matchHistory: []}}, {multi: true}, function(){
-		players.update({username: {$in: ["Vincessant", "Basic Stitch", "Seaghost", "RAF", "1BM", "Greg Glaze"]}}, {$set: {meleeRating: 1250}}, {multi: true});
+		//players.update({username: {$in: ["Vincessant", "Basic Stitch", "Seaghost", "RAF", "1BM", "Greg Glaze"]}}, {$set: {meleeRating: 1250}}, {multi: true});
 	});
 	
 	//reapply all of the matches
-	players.find({hidden: true}, {username: 1}, function(err, hiddenPlayers){
+	players.find({$or: [{hidden: true}/*, {school: {$nin: ['du']}}*/]}, {username: 1}, function(err, hiddenPlayers){
 		hiddenList = toListOfAttributes(hiddenPlayers, "username");
 		matches.find({$and: [{"reporter.username": {$nin: hiddenList}}, {"opponent.username": {$nin: hiddenList}}]}, function(err, sets){
 			if(err){console.log("Error finding matches");}
@@ -378,7 +380,7 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 	});
 	app.get('/login', function(req, res){
 		if(req.user){
-		res.render(__dirname + '/pages/jade/login.jade', {user: req.user['username'], admin: req.user['admin']});
+			res.render(__dirname + '/pages/jade/login.jade', {user: req.user['username'], admin: req.user['admin']});
 		}
 		else{
 			res.render(__dirname + '/pages/jade/login.jade', {});
@@ -393,6 +395,63 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 	app.get('/logout', function(req, res){
 		req.logout();
 		res.redirect('/');
+	});
+	app.get('/history', function(req, res){
+		matches.find({}).sort({resolutionOrder: 1}, function(err, games){
+			if(req.user){
+				res.render(__dirname + '/pages/jade/history.jade', {user: req.user['username'], admin: req.user['admin'], history: JSON.stringify(games)});
+			}
+			else{
+				res.render(__dirname + '/pages/jade/history.jade', {history: JSON.stringify(games)});
+			}
+		});
+	});
+	app.get('/history/:game', function(req, res){
+		var game = req.params.game;
+		if(["lol", "melee", "pm", "smashFour"].indexOf(req.params.game)){
+			matches.find({"game": game}).sort({resolutionOrder: 1}, function(err, games){
+				console.log(err);
+				if(req.user){
+					res.render(__dirname + '/pages/jade/history.jade', {user: req.user['username'], admin: req.user['admin'], history: JSON.stringify(games)});
+				}
+				else{
+					res.render(__dirname + '/pages/jade/history.jade', {history: JSON.stringify(games)});
+				}
+			});
+		}
+		else{
+			var games = {error: true}
+			if(req.user){
+				res.render(__dirname + '/pages/jade/history.jade', {user: req.user['username'], admin: req.user['admin'], history: JSON.stringify(games)});
+			}
+			else{
+				res.render(__dirname + '/pages/jade/history.jade', {history: JSON.stringify(games)});
+			}
+			
+		}
+	});
+	app.get('/history/:game/:event', function(req, res){
+		var game = req.params.game;
+		var event = req.params.event;
+		if(["lol", "melee", "pm", "smashFour"].indexOf(game)){
+			matches.find({"game": game, "event": event}).sort({resolutionOrder: 1}, function(err, games){
+				if(req.user){
+					res.render(__dirname + '/pages/jade/history.jade', {user: req.user['username'], admin: req.user['admin'], history: JSON.stringify(games), "event": event});
+				}
+				else{
+					res.render(__dirname + '/pages/jade/history.jade', {history: JSON.stringify(games), "event": event});
+				}
+			});
+		}
+		else{
+			var games = {error: true}
+			if(req.user){
+				res.render(__dirname + '/pages/jade/history.jade', {user: req.user['username'], admin: req.user['admin'], history: JSON.stringify(games), "event": event});
+			}
+			else{
+				res.render(__dirname + '/pages/jade/history.jade', {history: JSON.stringify(games), "event": event});
+			}
+		}
 	});
 	app.get('/user/:username', function(req, res){
 		var uname = req.params.username;
@@ -516,7 +575,14 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 	// on a message
 	bot.on('message', message => {
 		var input = message.content.split(" ");
-		if(input[0] == "-dl" && message.channel.id == 222765483806425088){
+		if (!message.member){
+			return;
+		}
+		if (hasBadWord(message.content) !== "") {
+			message.member.sendMessage("Your message: \"" + message.content + "\" was deleted because it contained the word: \"" + hasBadWord(message.content) + "\"");
+			message.delete();
+		}
+		else if(input[0] == "-dl" && message.channel.id == 285600254194352139){
 		// if it follows the patter '-dl add game' then do this
 			if (input[1] == 'add' && input[2] == 'game'){
 				var user = message.member;
@@ -542,10 +608,10 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 					}
 				}
 				user.setRoles(usersRoles);
-			}
+			}	
 			else if(input [1] == 'list' && input[2] == 'games'){
 				//if the command is 'list games' then return a list of the games
-				message.channel.sendMessage('Supported games are: Smash, LoL (League of Legends), Overwatch, DotA2, CS:GO, Hearthstone')
+				message.channel.sendMessage('Supported games are: Smash, LoL (League of Legends), Overwatch, DotA2, CS:GO, Hearthstone, Arms, Board_Games')
 			}
 			else if(input[1] == 'help' || input.length == 1){
 				message.channel.sendMessage('Sending <@' + message.member.id + '> commands list');
@@ -557,10 +623,14 @@ function enterInDB(playerOne, playerTwo, gamePlayed, eventName, playerOneWins, p
 			}
 		}
 		else if(input[0] == '-dl'){
-			message.channel.sendMessage('I do not respond to commands here, head over to <#222765483806425088> if you want to interact with me!');
+			message.channel.sendMessage('I do not respond to commands here, head over to <#285600254194352139> if you want to interact with me!');
 		}
 	});
-
+	
+	function hasBadWord(message) {
+		//console.log(message, (message.toLowerCase().match(badWordsRe) || []).join(", "), badWordsRe);
+		return (message.toLowerCase().match(badWordsRe) || []).join(", ");
+	}
 	// log the bot in
 	bot.login(token);
 	rebuildRatings();

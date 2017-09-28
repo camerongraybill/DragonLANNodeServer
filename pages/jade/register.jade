@@ -99,10 +99,14 @@ html.no-js(lang='en', dir='ltr')
         label(for='name') Username:
         input#name(type='text', name='name', onkeypress='return event.keyCode!=13', placeholder="Enter the new user's name")
         br
-        label(for='college') What school do you attend?
+        label(for='college') What school do you attend/what is your connection to university city?
         select#college
-          option(value='du') Drexel University
-          option(value='up') University of Pennsylvania
+          option(value='du') Drexel University Student
+          option(value='dug') Drexel University Graduate
+          option(value='up') University of Pennsylvania Student
+          option(value='upg') University of Pennsylvania Graduate
+          option(value='hs') Highschool Student
+          option(value='ot') Other
         label(for='password') Password:
         input#password(type='password', name='password', onkeypress='return event.keyCode!=13', placeholder="Enter your new password")
         br

@@ -1,0 +1,12 @@
+Smash Ladder Rules:
+	Challenging:
+		You can challenge anyone 50 rating or less above you, or 5 spots or less above you (Whichever one is more people)
+		Challenges can be best of 3 or best of 5, determined by the challenger.
+		The Winner always reports the match ( http://dusmashladder.com/report )
+		You cannot challenge the same person more than once at the same event.
+		When challenged you must accept to play at that time or schedule a time to play as soon as possible
+		If a challenge is no longer valid when you go to play it (IE the challenger is now higher rank than the target) the match should not be played.
+	Faulty reporting:
+		If you report a match that did not happen, you will be given a strike. After 3 strikes you will be removed from the ladder.
+		If you report a match that has already been reported, please contact an admin immediately to get it removed.
+	All matches that go on the smash ladder follow traditional tournament format. The stage list and rules are the rules for the most recent Smash @ Marios Tournament (Easily found on Facebook)
