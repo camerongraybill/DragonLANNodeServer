@@ -1,0 +1,36 @@
+header#spec.row.expanded.small-collapse.medium-uncollapse
+    nav
+        .title-bar(data-responsive-toggle='example-menu', data-hide-for='medium')
+            section.row.small-collapse
+                .columns.small-10
+                    h1 U.C. Smash Ladder
+                .columns.small-2.text-right
+                    button.menu-icon(type='button', data-toggle='')
+                    .title-bar-title
+        #example-menu.top-bar
+            .row.hide-for-small-only.expanded
+                h1.columns.medium-12 University City Smash Ladder
+            #cenav.row.expanded
+                ul.menu.vertical.medium-horizontal.columns.medium-12(data-responsive-menu='drilldown medium-dropdown')
+                    li
+                        a(href='/') Scoreboard
+                    li
+                        a(href='/register') Register
+                    li
+                        a(href='/report') Report Match
+                #mag.row.hide-for-medium
+                    ul.columns.small-12.no-bullet
+                        li.columns.small-4(data-magellan-arrival='smashFour')
+                            a#smag(href='#smashFour') Smash 4
+                        li.columns.small-4(data-magellan-arrival='melee')
+                            a#mmag(href='#melee') Melee
+                        li.columns.small-4(data-magellan-arrival='pm')
+                            a#pmag(href='#pm') Project M
+#hide.hide-for-medium
+#logdiv
+    if (typeof(user) === 'undefined')
+        a(href='/login')
+            #log.columns.small-12.text-center Login
+    else
+        a(href='/logout')
+            #log.columns.small-12.text-center Logout
