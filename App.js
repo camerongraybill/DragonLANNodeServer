@@ -121,9 +121,9 @@ function compareToSortAny(prop, a, b) {
 
 const compareToSortMelee = compareToSortAny.bind(null, "meleeRating");
 
-const compareToSortSmashFour = compareToSortAny(null, "smashFourRating");
+const compareToSortSmashFour = compareToSortAny.bind(null, "smashFourRating");
 
-const compareToSortPm = compareToSortAny(null, "pmRating");
+const compareToSortPm = compareToSortAny.bind(null, "pmRating");
 
 function rebuildRatings() {
     //Set Seeding

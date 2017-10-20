@@ -54,44 +54,44 @@ html.no-js(lang='en', dir='ltr')
       }});
   body
     include header
-      h2#smash4.columns.small-12 Report Your Match
-      form#smashform.columns.small-12.medium-10.medium-offset-1(action='', method='', enctype='')
-        fieldset
-          #admindiv(style='display:none;')
-            label(for='eventName') Event name (leave blank for challenges):
-            input#eventName(type='text', name='eventName', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's username")
-            br
-            label(for='playerOne') Player One's username:
-            input#playerOne(type='text', name='playerOne', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's username")
-            br
-          label(for='playerTwo') Opponent's username:
-          input#playerTwo(type='text', name='playerTwo', onkeypress='return event.keyCode!=13', placeholder="Enter Player Two's username")
+    h2#smash4.columns.small-12 Report Your Match
+    form#smashform.columns.small-12.medium-10.medium-offset-1(action='', method='', enctype='')
+      fieldset
+        #admindiv(style='display:none;')
+          label(for='eventName') Event name (leave blank for challenges):
+          input#eventName(type='text', name='eventName', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's username")
           br
-          .row
-            .columns.medium-6
-              label(for='playerOneWins') How many games did you win?
-              input#playerOneWins(type='text', name='playerOneWins', onkeypress='return event.keyCode!=13', placeholder='Number of games you won')
-              br
-            .columns.medium-6
-              label(for='playerTwoWins') How many games did your opponent win?
-              input#playerTwoWins(type='text', name='playerTwoWins', onkeypress='return event.keyCode!=13', placeholder='Number of games your opponent won')
-              br
-            label(for='game') Which game was this in?
-            select(name='game')
-              option(value='pickOne') Choose One
-              option(value='smashFour') Smash 4
-              option(value='melee') Melee
-              option(value='pm') Project M
+          label(for='playerOne') Player One's username:
+          input#playerOne(type='text', name='playerOne', onkeypress='return event.keyCode!=13', placeholder="Enter Player One's username")
+          br
+        label(for='playerTwo') Opponent's username:
+        input#playerTwo(type='text', name='playerTwo', onkeypress='return event.keyCode!=13', placeholder="Enter Player Two's username")
+        br
+        .row
+          .columns.medium-6
+            label(for='playerOneWins') How many games did you win?
+            input#playerOneWins(type='text', name='playerOneWins', onkeypress='return event.keyCode!=13', placeholder='Number of games you won')
             br
-            label(for='tournament?') Is this a tournament game?
-            select(name='tournament?')
-              option(value='no') No
-              option(value='yes') Yes
+          .columns.medium-6
+            label(for='playerTwoWins') How many games did your opponent win?
+            input#playerTwoWins(type='text', name='playerTwoWins', onkeypress='return event.keyCode!=13', placeholder='Number of games your opponent won')
             br
-            if (typeof(user) === 'undefined')
-              input(type='button', value='Submit Game', onclick='alert(\'You must be logged in to perform this action\')')
-            else
-              input(type='button', value='Submit Game', onclick='submitGame()')
+          label(for='game') Which game was this in?
+          select(name='game')
+            option(value='pickOne') Choose One
+            option(value='smashFour') Smash 4
+            option(value='melee') Melee
+            option(value='pm') Project M
+          br
+          label(for='tournament?') Is this a tournament game?
+          select(name='tournament?')
+            option(value='no') No
+            option(value='yes') Yes
+          br
+          if (typeof(user) === 'undefined')
+            input(type='button', value='Submit Game', onclick='alert(\'You must be logged in to perform this action\')')
+          else
+            input(type='button', value='Submit Game', onclick='submitGame()')
       include footer
     script(src='js/vendor/jquery.js')
     script(src='js/vendor/what-input.js')
