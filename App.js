@@ -20,7 +20,7 @@ const app = express();
 const httpServer = http.Server(app);
 const io = socketIO(httpServer);
 const players = db.collection('players');
-const matches = db.collection('matches');
+const matches = db.collection('F2017Matches');
 let matchHistoryTotal = 1;
 //WEBSITE STARTS HERE
 //set some app settings
